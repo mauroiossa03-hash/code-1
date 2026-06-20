@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { C } from "../theme.js";
 import { Logo } from "../components/primitives.jsx";
 import HeroStage from "../components/HeroStage.jsx";
+import ShaderBackground from "../components/ShaderBackground.jsx";
 import {
   Target, Layers3, Timer, BarChart3, ArrowRight, Sparkles, Star,
   ShieldCheck, Globe, GraduationCap, Check,
@@ -40,6 +41,7 @@ export default function Landing({ setScreen, lang, setLang }) {
 
   return (
     <div style={{ position: "relative", minHeight: "100dvh", overflow: "hidden", paddingBottom: 40 }}>
+      <ShaderBackground />
       <div className="aurora"><div className="aurora-grid" /></div>
 
       {/* Header */}
