@@ -28,14 +28,16 @@ export default function CandlestickBackground({ style }) {
 
     function genCandle() {
       const o = price;
-      // mean-reverting walk so it stays on screen, with occasional bursts
-      const drift = (0.5 - price) * 0.06;
-      const vol = 0.05 + rand() * 0.06;
+      // weaker mean-reversion + wider swings so price travels much further up/down
+      const drift = (0.5 - price) * 0.025;
+      const vol = 0.08 + rand() * 0.22;
       let c = o + drift + (rand() - 0.5) * vol * 2;
-      c = Math.max(0.06, Math.min(0.94, c));
-      const wick = 0.01 + rand() * 0.05;
-      const h = Math.min(0.98, Math.max(o, c) + wick * rand());
-      const l = Math.max(0.02, Math.min(o, c) - wick * rand());
+      c = Math.max(0.04, Math.min(0.96, c));
+      // body and wicks sized independently and randomly (some tiny, some huge)
+      const wickUp = rand() * rand() * 0.22;
+      const wickDown = rand() * rand() * 0.22;
+      const h = Math.min(0.99, Math.max(o, c) + wickUp);
+      const l = Math.max(0.01, Math.min(o, c) - wickDown);
       price = c;
       return { o, c, h, l };
     }
@@ -55,19 +57,31 @@ export default function CandlestickBackground({ style }) {
       return height - pad - p * (height - pad * 2);
     }
 
-    function drawGrid() {
-      // warm dark backdrop with a glow toward upper-right
+    function drawGrid(t) {
+      // warm dark backdrop, same red/orange/gold palette — base gradient slowly breathes
+      const wobble = Math.sin(t * 0.00018) * 0.5 + 0.5;
       const grad = ctx.createLinearGradient(0, 0, width, height);
       grad.addColorStop(0, "#1a0805");
-      grad.addColorStop(0.55, "#2a0a08");
+      grad.addColorStop(0.5 + wobble * 0.1, "#2a0a08");
       grad.addColorStop(1, "#120403");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
 
-      const glow = ctx.createRadialGradient(width * 0.72, height * 0.35, 0, width * 0.72, height * 0.35, width * 0.6);
-      glow.addColorStop(0, "rgba(255,140,40,0.22)");
-      glow.addColorStop(1, "rgba(255,80,30,0)");
-      ctx.fillStyle = glow;
+      // two drifting glows so the backdrop keeps moving, not just the candles
+      const gx1 = width * (0.5 + Math.sin(t * 0.00021) * 0.28);
+      const gy1 = height * (0.35 + Math.cos(t * 0.00017) * 0.18);
+      const glow1 = ctx.createRadialGradient(gx1, gy1, 0, gx1, gy1, width * 0.55);
+      glow1.addColorStop(0, "rgba(255,140,40,0.24)");
+      glow1.addColorStop(1, "rgba(255,80,30,0)");
+      ctx.fillStyle = glow1;
+      ctx.fillRect(0, 0, width, height);
+
+      const gx2 = width * (0.5 + Math.cos(t * 0.00013 + 2) * 0.32);
+      const gy2 = height * (0.65 + Math.sin(t * 0.00019 + 1) * 0.2);
+      const glow2 = ctx.createRadialGradient(gx2, gy2, 0, gx2, gy2, width * 0.4);
+      glow2.addColorStop(0, "rgba(244,192,32,0.14)");
+      glow2.addColorStop(1, "rgba(244,192,32,0)");
+      ctx.fillStyle = glow2;
       ctx.fillRect(0, 0, width, height);
 
       ctx.strokeStyle = "rgba(255,70,40,0.14)";
@@ -91,7 +105,7 @@ export default function CandlestickBackground({ style }) {
         candles.push(genCandle());
       }
 
-      drawGrid();
+      drawGrid(t);
 
       for (let i = 0; i < candles.length; i++) {
         const cd = candles[i];

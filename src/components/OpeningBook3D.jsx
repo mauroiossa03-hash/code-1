@@ -30,7 +30,7 @@ function Book({ progressRef }) {
     [mats]
   );
   const baseMats = useMemo(
-    () => [mats.pageMat, mats.spine, mats.pageMat, mats.pageMat, mats.innerMat, mats.navy],
+    () => [mats.pageMat, mats.spine, mats.pageMat, mats.pageMat, mats.innerMat, mats.coverFront],
     [mats]
   );
 
