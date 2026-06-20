@@ -63,11 +63,6 @@ function makeCoverTexture() {
   ctx.font = "800 92px 'Plus Jakarta Sans', sans-serif";
   ctx.fillText("Finance", chipX - 5 + oddsWidth / 2 + ctx.measureText("Finance").width / 2, h * 0.6, w * 0.8);
 
-  ctx.fillStyle = "rgba(234,239,251,0.65)";
-  ctx.font = "500 30px 'Plus Jakarta Sans', sans-serif";
-  ctx.letterSpacing = "4px";
-  ctx.fillText("CFA  LEVEL  1  PREP", chipX, h * 0.68, w * 0.85);
-
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
@@ -107,9 +102,13 @@ function Book() {
     const spine = new THREE.MeshStandardMaterial({ color: "#16225C", roughness: 0.4, metalness: 0.2 });
     const pages = new THREE.MeshStandardMaterial({ map: pagesTexture, roughness: 0.85, metalness: 0 });
     const front = new THREE.MeshStandardMaterial({ map: coverTexture, roughness: 0.35, metalness: 0.1 });
-    // BoxGeometry face order: +x, -x, +y, -y, +z, -z
-    return [pages, spine, navy, navy, front, navy];
+    const back = new THREE.MeshStandardMaterial({ map: coverTexture, roughness: 0.35, metalness: 0.1 });
+    // BoxGeometry face order: +x, -x, +y, -y, +z, -z — front cover on +z, back cover on -z
+    return [pages, spine, navy, navy, front, back];
   }, [coverTexture, pagesTexture]);
+
+  // Static tilt so the book isn't lying flat/parallel to the ground, only the y-spin animates.
+  const tilt = useMemo(() => new THREE.Euler(0.32, 0, 0.16), []);
 
   useFrame((state, delta) => {
     if (!ref.current) return;
@@ -118,9 +117,11 @@ function Book() {
 
   return (
     <Float speed={1.4} rotationIntensity={0.15} floatIntensity={0.8}>
-      <mesh ref={ref} scale={1.5} material={materials}>
-        <boxGeometry args={[1.35, 1.8, 0.22]} />
-      </mesh>
+      <group rotation={tilt}>
+        <mesh ref={ref} scale={1.5} material={materials}>
+          <boxGeometry args={[1.35, 1.8, 0.22]} />
+        </mesh>
+      </group>
     </Float>
   );
 }
