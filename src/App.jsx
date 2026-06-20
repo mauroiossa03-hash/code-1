@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "./lib/supabase.js";
 import { TopBar, BottomNav } from "./components/Nav.jsx";
+import BackgroundPaths from "./components/BackgroundPaths.jsx";
 
 import Landing from "./screens/Landing.jsx";
 import Login from "./screens/Login.jsx";
@@ -99,11 +100,13 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <BackgroundPaths />
       {showNav && <TopBar lang={lang} setLang={setLang} isPremium={isPremium} setScreen={setScreen} />}
 
       <AnimatePresence mode="wait">
         <motion.div
           key={screen}
+          style={{ position: "relative", zIndex: 1 }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}

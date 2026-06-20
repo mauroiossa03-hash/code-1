@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { C } from "../theme.js";
 import { Logo } from "../components/primitives.jsx";
 import HeroStage from "../components/HeroStage.jsx";
-import BackgroundPaths from "../components/BackgroundPaths.jsx";
-import ScrollStage from "../components/ScrollStage.jsx";
+import LandingIntro from "../components/LandingIntro.jsx";
 import {
   Target, Layers3, Timer, BarChart3, ArrowRight, Sparkles,
   ShieldCheck, Globe, GraduationCap, Check,
@@ -19,6 +19,7 @@ const reveal = {
 
 export default function Landing({ setScreen, lang, setLang }) {
   const t = lang === "it";
+  const [entered, setEntered] = useState(false);
 
   const features = t
     ? [
@@ -42,7 +43,7 @@ export default function Landing({ setScreen, lang, setLang }) {
 
   return (
     <div style={{ position: "relative", minHeight: "100dvh", overflow: "hidden", paddingBottom: 40 }}>
-      <BackgroundPaths />
+      {!entered && <LandingIntro lang={lang} onEnter={() => setEntered(true)} />}
       <div className="aurora"><div className="aurora-grid" /></div>
 
       {/* Header */}
@@ -121,47 +122,43 @@ export default function Landing({ setScreen, lang, setLang }) {
             style={{ fontSize: 14, color: C.textSoft, marginBottom: 26, lineHeight: 1.6 }}>
             {t ? "Quattro strumenti, un solo obiettivo: portarti all'esame preparato." : "Four tools, one goal: get you to exam day ready."}
           </motion.p>
-          <ScrollStage>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {features.map((f, i) => (
-                <motion.div key={i} variants={reveal} custom={i} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }}
-                  className="card card-hover" style={{ padding: 20, textAlign: "left", display: "flex", gap: 16, alignItems: "flex-start" }}>
-                  <div style={{ width: 50, height: 50, borderRadius: 14, flexShrink: 0, display: "grid", placeItems: "center",
-                    background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.indigo, border: `1px solid ${C.border}` }}>
-                    <f.Icon size={24} strokeWidth={2} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15.5, fontWeight: 800, color: C.ink, marginBottom: 4 }}>{f.title}</div>
-                    <div style={{ fontSize: 13, color: C.textSoft, lineHeight: 1.6 }}>{f.desc}</div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </ScrollStage>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {features.map((f, i) => (
+              <motion.div key={i} variants={reveal} custom={i} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }}
+                className="card card-hover" style={{ padding: 20, textAlign: "left", display: "flex", gap: 16, alignItems: "flex-start" }}>
+                <div style={{ width: 50, height: 50, borderRadius: 14, flexShrink: 0, display: "grid", placeItems: "center",
+                  background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.indigo, border: `1px solid ${C.border}` }}>
+                  <f.Icon size={24} strokeWidth={2} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 15.5, fontWeight: 800, color: C.ink, marginBottom: 4 }}>{f.title}</div>
+                  <div style={{ fontSize: 13, color: C.textSoft, lineHeight: 1.6 }}>{f.desc}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         {/* CTA band */}
-        <div style={{ marginTop: 56, width: "100%", maxWidth: 480 }}>
-          <ScrollStage background={`linear-gradient(150deg, ${C.ink}, ${C.navy} 60%, ${C.indigoDeep})`}>
-            <div className="sheen" style={{ padding: "38px 28px", borderRadius: 24, textAlign: "center", boxShadow: "var(--shadow-lg)" }}>
-              <div style={{ display: "inline-flex", marginBottom: 14, padding: 12, borderRadius: 16, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.16)" }}>
-                <Sparkles size={24} color={C.goldBright} />
-              </div>
-              <h2 className="display" style={{ fontSize: 28, color: "#fff", marginBottom: 10 }}>
-                {t ? "Pronto a iniziare?" : "Ready to start?"}
-              </h2>
-              <p style={{ fontSize: 14, color: C.onDarkSoft, marginBottom: 22, lineHeight: 1.6 }}>
-                {t ? "Unisciti agli studenti che si preparano in modo intelligente. Gratis per cominciare." : "Join students preparing the smart way. Free to start."}
-              </p>
-              <button onClick={() => setScreen("register")} className="btn btn-white btn-lg">
-                {t ? "Crea il tuo account gratuito" : "Create your free account"} <ArrowRight size={18} />
-              </button>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: C.onDarkSoft, marginTop: 14 }}>
-                <Check size={14} color={C.green} /> {t ? "Garanzia 7 giorni sui piani Premium" : "7-day money-back guarantee on Premium"}
-              </div>
-            </div>
-          </ScrollStage>
-        </div>
+        <motion.div variants={reveal} initial="hidden" whileInView="show" viewport={{ once: true }}
+          className="sheen" style={{ marginTop: 56, width: "100%", maxWidth: 480, padding: "38px 28px", borderRadius: 26, textAlign: "center",
+            background: `linear-gradient(150deg, ${C.ink}, ${C.navy} 60%, ${C.indigoDeep})`, boxShadow: "var(--shadow-lg)" }}>
+          <div style={{ display: "inline-flex", marginBottom: 14, padding: 12, borderRadius: 16, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.16)" }}>
+            <Sparkles size={24} color={C.goldBright} />
+          </div>
+          <h2 className="display" style={{ fontSize: 28, color: "#fff", marginBottom: 10 }}>
+            {t ? "Pronto a iniziare?" : "Ready to start?"}
+          </h2>
+          <p style={{ fontSize: 14, color: C.onDarkSoft, marginBottom: 22, lineHeight: 1.6 }}>
+            {t ? "Unisciti agli studenti che si preparano in modo intelligente. Gratis per cominciare." : "Join students preparing the smart way. Free to start."}
+          </p>
+          <button onClick={() => setScreen("register")} className="btn btn-white btn-lg">
+            {t ? "Crea il tuo account gratuito" : "Create your free account"} <ArrowRight size={18} />
+          </button>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: C.onDarkSoft, marginTop: 14 }}>
+            <Check size={14} color={C.green} /> {t ? "Garanzia 7 giorni sui piani Premium" : "7-day money-back guarantee on Premium"}
+          </div>
+        </motion.div>
 
         {/* Footer */}
         <div style={{ marginTop: 44, paddingTop: 22, borderTop: `1px solid ${C.border}`, width: "100%", maxWidth: 480,
