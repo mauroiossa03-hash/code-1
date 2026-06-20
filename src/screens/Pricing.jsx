@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { C } from "../theme.js";
 import { CHECKOUT } from "../lib/supabase.js";
+import BackgroundPaths from "../components/BackgroundPaths.jsx";
+import ScrollStage from "../components/ScrollStage.jsx";
 import { ArrowLeft, ArrowRight, Check, X, ShieldCheck, Crown } from "../components/icons.jsx";
 
 export default function Pricing({ lang, user, setScreen }) {
@@ -36,7 +38,8 @@ export default function Pricing({ lang, user, setScreen }) {
   };
 
   return (
-    <div style={{ padding: "22px 18px 96px", position: "relative" }}>
+    <div style={{ padding: "22px 18px 96px", position: "relative", overflow: "hidden" }}>
+      <BackgroundPaths />
       <div className="aurora" />
       <div style={{ position: "relative", zIndex: 1 }}>
         {!user && (
@@ -67,59 +70,61 @@ export default function Pricing({ lang, user, setScreen }) {
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {plans.map((plan, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-              className={plan.primary ? "sheen" : ""}
-              style={{
-                padding: "24px 20px", borderRadius: 22, position: "relative",
-                border: `1.5px solid ${plan.primary ? "transparent" : C.border}`,
-                background: plan.primary ? `linear-gradient(150deg, ${C.ink}, ${C.navy} 65%, ${C.indigoDeep})` : C.surface,
-                boxShadow: plan.primary ? "var(--shadow-lg)" : "var(--shadow-sm)",
-              }}>
-              {plan.badge && (
-                <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)" }}>
-                  <span className="tag" style={{ background: `linear-gradient(135deg, #FFD66B, ${C.goldBright})`, color: "#3a2a00", padding: "5px 14px", boxShadow: "var(--shadow-md)" }}>
-                    <Crown size={12} /> {plan.badge}
-                  </span>
-                </div>
-              )}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: plan.primary ? "#fff" : C.ink }}>{plan.name}</div>
-                  {plan.price === 0 && <div style={{ fontSize: 12, color: C.textMute, marginTop: 2 }}>{t ? "Per sempre gratis" : "Free forever"}</div>}
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <span className="display" style={{ fontSize: 34, fontWeight: 600, color: plan.primary ? "#fff" : C.ink }}>€{plan.price}</span>
-                  <span style={{ fontSize: 12, color: plan.primary ? C.onDarkSoft : C.textMute }}>{plan.period}</span>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
-                {plan.features.map((f, j) => (
-                  <div key={j} style={{ display: "flex", gap: 9, alignItems: "center", fontSize: 13 }}>
-                    <span style={{ width: 18, height: 18, borderRadius: 6, display: "grid", placeItems: "center", flexShrink: 0, background: plan.primary ? "rgba(18,167,103,0.25)" : C.greenDim, color: plan.primary ? "#4ADE80" : C.green }}>
-                      <Check size={12} strokeWidth={3} />
+        <ScrollStage>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {plans.map((plan, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                className={plan.primary ? "sheen" : ""}
+                style={{
+                  padding: "24px 20px", borderRadius: 22, position: "relative",
+                  border: `1.5px solid ${plan.primary ? "transparent" : C.border}`,
+                  background: plan.primary ? `linear-gradient(150deg, ${C.ink}, ${C.navy} 65%, ${C.indigoDeep})` : C.surface,
+                  boxShadow: plan.primary ? "var(--shadow-lg)" : "var(--shadow-sm)",
+                }}>
+                {plan.badge && (
+                  <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)" }}>
+                    <span className="tag" style={{ background: `linear-gradient(135deg, #FFD66B, ${C.goldBright})`, color: "#3a2a00", padding: "5px 14px", boxShadow: "var(--shadow-md)" }}>
+                      <Crown size={12} /> {plan.badge}
                     </span>
-                    <span style={{ color: plan.primary ? "#EAF1FF" : C.textSoft }}>{f}</span>
                   </div>
-                ))}
-                {plan.locked?.map((f, j) => (
-                  <div key={j} style={{ display: "flex", gap: 9, alignItems: "center", fontSize: 13, opacity: 0.5 }}>
-                    <span style={{ width: 18, height: 18, borderRadius: 6, display: "grid", placeItems: "center", flexShrink: 0, background: C.surfaceUp, color: C.textMute }}>
-                      <X size={12} strokeWidth={3} />
-                    </span>
-                    <span style={{ color: C.textMute }}>{f}</span>
+                )}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: plan.primary ? "#fff" : C.ink }}>{plan.name}</div>
+                    {plan.price === 0 && <div style={{ fontSize: 12, color: C.textMute, marginTop: 2 }}>{t ? "Per sempre gratis" : "Free forever"}</div>}
                   </div>
-                ))}
-              </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span className="display" style={{ fontSize: 34, fontWeight: 600, color: plan.primary ? "#fff" : C.ink }}>€{plan.price}</span>
+                    <span style={{ fontSize: 12, color: plan.primary ? C.onDarkSoft : C.textMute }}>{plan.period}</span>
+                  </div>
+                </div>
 
-              <button onClick={() => handleCta(plan)} className={plan.primary ? "btn btn-gold btn-block" : "btn btn-ghost btn-block"} style={{ padding: 13 }}>
-                {plan.cta} <ArrowRight size={16} />
-              </button>
-            </motion.div>
-          ))}
-        </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
+                  {plan.features.map((f, j) => (
+                    <div key={j} style={{ display: "flex", gap: 9, alignItems: "center", fontSize: 13 }}>
+                      <span style={{ width: 18, height: 18, borderRadius: 6, display: "grid", placeItems: "center", flexShrink: 0, background: plan.primary ? "rgba(18,167,103,0.25)" : C.greenDim, color: plan.primary ? "#4ADE80" : C.green }}>
+                        <Check size={12} strokeWidth={3} />
+                      </span>
+                      <span style={{ color: plan.primary ? "#EAF1FF" : C.textSoft }}>{f}</span>
+                    </div>
+                  ))}
+                  {plan.locked?.map((f, j) => (
+                    <div key={j} style={{ display: "flex", gap: 9, alignItems: "center", fontSize: 13, opacity: 0.5 }}>
+                      <span style={{ width: 18, height: 18, borderRadius: 6, display: "grid", placeItems: "center", flexShrink: 0, background: C.surfaceUp, color: C.textMute }}>
+                        <X size={12} strokeWidth={3} />
+                      </span>
+                      <span style={{ color: C.textMute }}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button onClick={() => handleCta(plan)} className={plan.primary ? "btn btn-gold btn-block" : "btn btn-ghost btn-block"} style={{ padding: 13 }}>
+                  {plan.cta} <ArrowRight size={16} />
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </ScrollStage>
 
         <div style={{ textAlign: "center", marginTop: 20, fontSize: 12, color: C.textMute, lineHeight: 1.9 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
