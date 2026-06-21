@@ -11,28 +11,11 @@ const NAV_ITEMS = [
   { id: "profile", Icon: User, it: "Profilo", en: "Profile" },
 ];
 
-export function TopBar({ lang, setLang, isPremium, setScreen, screen }) {
+export function TopBar({ lang, setLang, isPremium, setScreen }) {
   return (
-    <div className="top-bar top-bar--app">
-      <Link to="/" style={{ textDecoration: "none", flexShrink: 0 }}><Logo size={16} /></Link>
-
-      {/* Barra opzioni CFA: resta sempre in alto con tutte le sezioni. */}
-      <nav className="cfa-tabs" aria-label="CFA sections">
-        {NAV_ITEMS.map((it) => {
-          const active = screen === it.id;
-          return (
-            <button key={it.id} onClick={() => setScreen(it.id)}
-              className={`cfa-tab ${active ? "active" : ""}`}
-              style={{ color: active ? C.indigo : C.textMute }}
-              aria-current={active ? "page" : undefined}>
-              <it.Icon size={16} strokeWidth={active ? 2.4 : 2} />
-              <span>{lang === "it" ? it.it : it.en}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+    <div className="top-bar">
+      <Link to="/" style={{ textDecoration: "none" }}><Logo size={16} /></Link>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <button onClick={() => setLang(lang === "it" ? "en" : "it")} className="btn btn-ghost btn-sm" aria-label="Switch language">
           <Globe size={14} /> {lang === "it" ? "EN" : "IT"}
         </button>

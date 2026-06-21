@@ -112,9 +112,9 @@ export default function ScrollExpandMedia({
           )}
 
           {/* Glow verde "bull che vince" che cresce con lo scroll */}
-          <div className="sem-media-glow" style={{ opacity: 0.12 + progress * 0.5 }} />
-          {/* Velo scuro che si schiarisce man mano che si espande */}
-          <div className="sem-media-veil" style={{ opacity: 0.5 - progress * 0.35 }} />
+          <div className="sem-media-glow" style={{ opacity: 0.06 + progress * 0.3 }} />
+          {/* Velo scuro leggero, per dare contrasto al titolo; si schiarisce espandendo */}
+          <div className="sem-media-veil" style={{ opacity: 0.28 - progress * 0.28 }} />
 
           {(date || scrollToExpand) && (
             <div className="sem-media-caption">

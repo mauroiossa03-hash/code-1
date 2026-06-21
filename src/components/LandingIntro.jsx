@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import CandlestickBackground from "./CandlestickBackground.jsx";
 import ScrollExpandMedia from "./ScrollExpandMedia.jsx";
-import BullBearScene from "./BullBearScene.jsx";
 
 /*
   Intro a pieno schermo guidata dallo scroll, basata sull'effetto del componente
@@ -39,7 +38,8 @@ export default function LandingIntro({ onEnter, lang }) {
       style={{ position: "fixed", inset: 0, zIndex: 50, overflow: "hidden", background: "#040c14", touchAction: "none" }}
     >
       <ScrollExpandMedia
-        renderMedia={(p) => <BullBearScene progress={p} />}
+        mediaType="image"
+        mediaSrc="/bull-bear.webp"
         backgroundNode={<CandlestickBackground dark />}
         title="Odds Finance"
         scrollToExpand={t ? "Scorri — il toro batte l'orso" : "Scroll — the bull beats the bear"}
