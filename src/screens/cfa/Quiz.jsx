@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { C } from "../../theme.js";
 import { supabase } from "../../lib/supabase.js";
@@ -7,11 +7,46 @@ import {
   MOCK_QUESTIONS, dbQuestionToApp,
 } from "../../data.js";
 import { Spinner, TopicBadge } from "../../components/primitives.jsx";
+import QuestionChart from "../../components/QuestionChart.jsx";
 import { Lock, Crown, Check, X, ArrowRight, Sparkles } from "../../components/icons.jsx";
+import { ListOrdered, Shuffle } from "lucide-react";
+
+/* Chiave di persistenza del consumo gratuito, per utente e per topic.
+   Così rientrando nella sezione il conteggio NON riparte da 15. */
+const freeKey = (uid, filter) => `of_freeq_v1:${uid || "anon"}:${filter}`;
+const readFree = (uid, filter) => {
+  try { return parseInt(localStorage.getItem(freeKey(uid, filter)) || "0", 10) || 0; }
+  catch { return 0; }
+};
+const writeFree = (uid, filter, val) => {
+  try { localStorage.setItem(freeKey(uid, filter), String(val)); } catch { /* ignore */ }
+};
+
+/* Ordina i quesiti: "modules" = ordine dei learning module (TOPICS) poi id;
+   "shuffle" = rimescolamento deterministico (stabile finché non si ripreme Shuffle). */
+function orderQuestions(list, order, seed) {
+  if (!list || list.length === 0) return [];
+  if (order === "shuffle") {
+    const a = [...list];
+    let s = (seed || 1) >>> 0;
+    const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  const rank = Object.fromEntries(TOPICS.map((tp, i) => [tp.id, i]));
+  return [...list].sort((x, y) => {
+    const rx = rank[x.topic] ?? 99, ry = rank[y.topic] ?? 99;
+    if (rx !== ry) return rx - ry;
+    return (x.id || 0) - (y.id || 0);
+  });
+}
 
 export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
   const t = lang === "it";
-  const [questions, setQuestions] = useState([]);
+  const [rawQuestions, setRawQuestions] = useState([]);
   const [loadingQ, setLoadingQ] = useState(true);
   const [qIdx, setQIdx] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -19,22 +54,41 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
   const [timeLeft, setTimeLeft] = useState(30);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [filter, setFilter] = useState(activeTopic && activeTopic !== "all" ? activeTopic : "all");
+  const [order, setOrder] = useState("modules");      // "modules" | "shuffle"
+  const [shuffleSeed, setShuffleSeed] = useState(1);
+  const [uid, setUid] = useState(null);
+  const [freeUsed, setFreeUsed] = useState(0);        // quesiti gratuiti già consumati (persistente)
+  const [freeLoaded, setFreeLoaded] = useState(false);
   const timerRef = useRef();
+
+  const questions = useMemo(() => orderQuestions(rawQuestions, order, shuffleSeed), [rawQuestions, order, shuffleSeed]);
+
+  /* Utente corrente (per scoping del conteggio gratuito). */
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUid(data?.user?.id || "anon"));
+  }, []);
+
+  /* Carica il consumo gratuito persistito per (utente, topic). */
+  useEffect(() => {
+    if (uid == null) return;
+    setFreeUsed(readFree(uid, filter));
+    setFreeLoaded(true);
+  }, [uid, filter]);
 
   useEffect(() => {
     const load = async () => {
-      setLoadingQ(true); setQuestions([]); setQIdx(0); setScore({ correct: 0, total: 0 });
+      setLoadingQ(true); setRawQuestions([]); setQIdx(0); setScore({ correct: 0, total: 0 });
       const volumesToLoad = filter === "all" ? Object.values(TOPIC_TO_VOLUME) : TOPIC_TO_VOLUME[filter] ? [TOPIC_TO_VOLUME[filter]] : [];
 
       if (volumesToLoad.length === 0) {
-        setQuestions(filter === "all" ? MOCK_QUESTIONS : MOCK_QUESTIONS.filter((q) => q.topic === filter));
+        setRawQuestions(filter === "all" ? MOCK_QUESTIONS : MOCK_QUESTIONS.filter((q) => q.topic === filter));
         setLoadingQ(false); return;
       }
       const { data, error } = await supabase.from("questions").select("*").in("volume", volumesToLoad).order("id");
       if (error || !data || data.length === 0) {
-        setQuestions(filter === "all" ? MOCK_QUESTIONS : MOCK_QUESTIONS.filter((q) => q.topic === filter));
+        setRawQuestions(filter === "all" ? MOCK_QUESTIONS : MOCK_QUESTIONS.filter((q) => q.topic === filter));
       } else {
-        setQuestions(data.map(dbQuestionToApp));
+        setRawQuestions(data.map(dbQuestionToApp));
       }
       setLoadingQ(false);
     };
@@ -42,11 +96,12 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
   }, [filter]);
 
   const q = questions[qIdx % Math.max(questions.length, 1)];
-  const hitFreeLimit = !isPremium && qIdx >= FREE_QUESTIONS_PER_TOPIC;
+  const hitFreeLimit = !isPremium && freeUsed >= FREE_QUESTIONS_PER_TOPIC;
+  const remaining = Math.max(0, FREE_QUESTIONS_PER_TOPIC - freeUsed);
   const reveal = () => { clearInterval(timerRef.current); setRevealed(true); };
 
   useEffect(() => {
-    if (!q || loadingQ) return;
+    if (!q || loadingQ || hitFreeLimit) return;
     setSelected(null); setRevealed(false); setTimeLeft(30);
     clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
@@ -54,7 +109,7 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
     }, 1000);
     return () => clearInterval(timerRef.current);
     // eslint-disable-next-line
-  }, [qIdx, filter, loadingQ]);
+  }, [qIdx, filter, loadingQ, order, shuffleSeed]);
 
   const handleSelect = async (i) => {
     if (revealed || selected !== null) return;
@@ -79,7 +134,22 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
     }
   };
 
-  const next = () => setQIdx((qi) => (qi + 1) % Math.max(questions.length, 1));
+  const next = () => {
+    // Ogni avanzamento consuma una domanda gratuita (persistita), così il limite
+    // si raggiunge davvero e non riparte rientrando nella sezione.
+    if (!isPremium) {
+      const nv = freeUsed + 1;
+      setFreeUsed(nv);
+      writeFree(uid, filter, nv);
+    }
+    setQIdx((qi) => (qi + 1) % Math.max(questions.length, 1));
+  };
+
+  const changeOrder = (mode) => {
+    setOrder(mode);
+    if (mode === "shuffle") setShuffleSeed((s) => (s * 48271 + 1) & 0x7fffffff);
+    setQIdx(0);
+  };
 
   const letters = ["A", "B", "C", "D"];
   const timerColor = timeLeft > 20 ? C.green : timeLeft > 10 ? C.amber : C.red;
@@ -93,10 +163,18 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
     return { ...base, txt: C.textMute };
   };
 
+  const orderBtn = (mode, Icon, label) => (
+    <button onClick={() => changeOrder(mode)}
+      className={order === mode ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"}
+      style={{ whiteSpace: "nowrap", flexShrink: 0, gap: 6 }}>
+      <Icon size={13} /> {label}
+    </button>
+  );
+
   return (
     <div style={{ padding: "18px 18px 96px", position: "relative" }}>
-      {/* Filters */}
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 18 }}>
+      {/* Filtri topic */}
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 10 }}>
         {[{ id: "all", name: t ? "Tutti" : "All" }, ...TOPICS.slice(0, 3)].map((tp) => (
           <button key={tp.id} onClick={() => { setFilter(tp.id); setQIdx(0); }}
             className={filter === tp.id ? "btn btn-primary btn-sm" : "btn btn-ghost btn-sm"}
@@ -109,15 +187,24 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
         </button>
       </div>
 
-      {loadingQ && <Spinner />}
+      {/* Ordine: per moduli oppure shuffle */}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", overflowX: "auto", paddingBottom: 8, marginBottom: 18 }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: C.textMute, letterSpacing: ".06em", textTransform: "uppercase", flexShrink: 0 }}>
+          {t ? "Ordine" : "Order"}
+        </span>
+        {orderBtn("modules", ListOrdered, t ? "Per moduli" : "By modules")}
+        {orderBtn("shuffle", Shuffle, "Shuffle")}
+      </div>
 
-      {!loadingQ && hitFreeLimit ? (
+      {(loadingQ || !freeLoaded) && <Spinner />}
+
+      {!loadingQ && freeLoaded && hitFreeLimit ? (
         <div style={{ textAlign: "center", padding: "30px 16px" }} className="anim-fadeIn">
           <div style={{ width: 84, height: 84, borderRadius: 24, margin: "0 auto 18px", display: "grid", placeItems: "center", background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.indigo }}>
             <Lock size={38} />
           </div>
           <h3 className="display" style={{ fontSize: 24, color: C.ink, marginBottom: 10 }}>
-            {t ? "Hai usato le 15 domande gratuite" : "You've used your 15 free questions"}
+            {t ? `Hai usato le ${FREE_QUESTIONS_PER_TOPIC} domande gratuite` : `You've used your ${FREE_QUESTIONS_PER_TOPIC} free questions`}
           </h3>
           <p style={{ fontSize: 13.5, color: C.textSoft, lineHeight: 1.7, marginBottom: 26, maxWidth: 320, marginInline: "auto" }}>
             {t ? `Sblocca tutti i ${TOPICS.find((tp) => tp.id === filter)?.total || 2000}+ quesiti di questo topic con Premium.`
@@ -132,7 +219,7 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
             </button>
           </div>
         </div>
-      ) : !loadingQ && q ? (
+      ) : !loadingQ && freeLoaded && q ? (
         <>
           {/* Score bar */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
@@ -151,7 +238,7 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
           {!isPremium && (
             <div style={{ marginBottom: 12, padding: "9px 14px", borderRadius: 10, background: C.indigoDim, border: `1px solid ${C.border}`, fontSize: 12, color: C.indigoDeep, fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}>
               <Sparkles size={14} />
-              {t ? `${FREE_QUESTIONS_PER_TOPIC - qIdx} domande gratuite rimanenti` : `${FREE_QUESTIONS_PER_TOPIC - qIdx} free questions remaining`}
+              {t ? `${remaining} domande gratuite rimanenti` : `${remaining} free questions remaining`}
             </div>
           )}
 
@@ -171,6 +258,9 @@ export default function Quiz({ activeTopic, lang, isPremium, setScreen }) {
                   <div className="mono" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 13, fontWeight: 600, color: timerColor }}>{timeLeft}</div>
                 </div>
               </div>
+
+              {/* Grafico della domanda (se presente nei dati) */}
+              {q.hasChart && q.chartData && <QuestionChart data={q.chartData} />}
 
               <p className="display" style={{ fontSize: 18, lineHeight: 1.55, color: C.ink, marginBottom: 18, fontWeight: 500 }}>{q.q}</p>
 

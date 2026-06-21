@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { C } from "../../theme.js";
 import { supabase } from "../../lib/supabase.js";
-import { TOPICS, FREE_QUESTIONS_PER_TOPIC } from "../../data.js";
+import { TOPICS, FREE_QUESTIONS_PER_TOPIC, TOTAL_QUESTIONS } from "../../data.js";
 import { ProgressRing } from "../../components/primitives.jsx";
 import { TopicIcon } from "../../components/icons.jsx";
 import {
-  CheckCircle2, Target, BookOpen, CalendarDays, Lock, ChevronRight, Crown, Sparkles,
+  CheckCircle2, Gauge, BookOpen, CalendarDays, Lock, ChevronRight, Crown, Sparkles,
 } from "../../components/icons.jsx";
 
 export default function Dashboard({ setScreen, setActiveTopic, lang, isPremium, user }) {
@@ -38,12 +38,13 @@ export default function Dashboard({ setScreen, setActiveTopic, lang, isPremium, 
   const totalAnswered = Object.values(progress).reduce((a, b) => a + (b.answered || 0), 0);
   const totalCorrect = Object.values(progress).reduce((a, b) => a + (b.correct || 0), 0);
   const accuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
-  const overall = Math.round(Object.values(progress).reduce((a, b) => a + (b.pct || 0), 0) / TOPICS.length);
+  // Percentuale di completamento: quesiti risposti sul totale disponibile.
+  const completion = TOTAL_QUESTIONS > 0 ? Math.min(100, Math.round((totalAnswered / TOTAL_QUESTIONS) * 100)) : 0;
   const daysLeft = Math.max(0, Math.ceil((new Date("2026-11-15") - new Date()) / (1000 * 60 * 60 * 24)));
 
   const stats = [
     { Icon: CheckCircle2, val: loading ? "…" : totalAnswered, label: t ? "Risposte" : "Answered", color: C.indigo },
-    { Icon: Target, val: loading ? "…" : `${accuracy}%`, label: "Accuracy", color: C.green },
+    { Icon: Gauge, val: loading ? "…" : `${completion}%`, label: t ? "Completamento" : "Completion", color: C.green },
     { Icon: BookOpen, val: loading ? "…" : `${Object.keys(progress).length}/10`, label: t ? "Topic" : "Topics", color: C.violet },
   ];
 
@@ -57,11 +58,14 @@ export default function Dashboard({ setScreen, setActiveTopic, lang, isPremium, 
             <div className="eyebrow">{t ? "Bentornato" : "Welcome back"}</div>
             <div className="display" style={{ fontSize: 26, color: C.ink, marginTop: 3 }}>{user?.name || "Studente"}</div>
           </div>
-          <div style={{ position: "relative" }}>
-            <ProgressRing pct={overall || 0} size={58} />
-            <div className="mono" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 12.5, fontWeight: 600, color: C.indigo }}>
-              {overall || 0}%
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <div style={{ position: "relative" }}>
+              <ProgressRing pct={accuracy || 0} size={58} />
+              <div className="mono" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 12.5, fontWeight: 600, color: C.indigo }}>
+                {accuracy || 0}%
+              </div>
             </div>
+            <div style={{ fontSize: 9.5, color: C.textMute, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>Accuracy</div>
           </div>
         </div>
 

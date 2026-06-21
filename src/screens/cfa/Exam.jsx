@@ -71,23 +71,57 @@ export default function Exam({ lang, isPremium, setScreen }) {
     setPhase("done");
   };
 
-  /* ── Premium gate ── */
+  /* ── Pagina informativa per il piano Free ──
+     Non reindirizza al pricing: spiega cosa fa la sezione e che è riservata
+     agli abbonati, con un CTA non invasivo verso Premium. */
   if (!isPremium) {
+    const info = [
+      { Icon: FileText, title: t ? "180 domande in stile esame" : "180 exam-style questions", desc: t ? "Estratte da tutti e 10 i topic del CFA Level I." : "Drawn from all 10 CFA Level I topics." },
+      { Icon: Timer, title: t ? "2 sessioni da 270 minuti" : "2 × 270-minute sessions", desc: t ? "Stesso ritmo e durata del giorno dell'esame." : "Same pace and duration as exam day." },
+      { Icon: BarChart3, title: t ? "Report e punteggio salvato" : "Report & saved score", desc: t ? "Confronto con la soglia di superamento del 70%." : "Compared against the 70% passing threshold." },
+      { Icon: Target, title: t ? "Condizioni reali d'esame" : "Real exam conditions", desc: t ? "Timer continuo, niente spiegazioni durante la prova." : "Continuous timer, no explanations mid-exam." },
+    ];
     return (
-      <div style={{ padding: "40px 24px 96px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", position: "relative" }}>
+      <div style={{ padding: "32px 22px 96px", position: "relative" }}>
         <div className="aurora" />
-        <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ width: 86, height: 86, borderRadius: 24, margin: "0 auto 20px", display: "grid", placeItems: "center", background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.indigo }}>
-            <Lock size={40} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 460, margin: "0 auto" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width: 86, height: 86, borderRadius: 24, margin: "0 auto 18px", display: "grid", placeItems: "center", background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.indigo }}>
+              <Lock size={40} />
+            </div>
+            <span className="tag" style={{ background: "rgba(201,138,18,0.12)", color: C.gold, border: "1px solid rgba(201,138,18,0.3)", marginBottom: 14 }}>
+              <Crown size={12} /> {t ? "Riservato agli abbonati" : "Subscribers only"}
+            </span>
+            <h2 className="display" style={{ fontSize: 28, color: C.ink, marginBottom: 10 }}>{t ? "Simulatore d'Esame" : "Exam Simulator"}</h2>
+            <p style={{ fontSize: 14, color: C.textSoft, lineHeight: 1.7, marginBottom: 26 }}>
+              {t ? "Il simulatore replica l'esame CFA Level I completo. Ecco cosa fa questa sezione — disponibile con il piano Premium."
+                 : "The simulator replicates the full CFA Level I exam. Here's what this section does — available on the Premium plan."}
+            </p>
           </div>
-          <h2 className="display" style={{ fontSize: 28, color: C.ink, marginBottom: 12 }}>{t ? "Simulatore Esame" : "Exam Simulator"}</h2>
-          <p style={{ fontSize: 14, color: C.textSoft, lineHeight: 1.7, marginBottom: 30, maxWidth: 340 }}>
-            {t ? "Il simulatore d'esame completo (180 domande, 2 sessioni da 270 minuti) è disponibile solo con Premium."
-               : "The full exam simulator (180 questions, 2 × 270-minute sessions) is available with Premium only."}
-          </p>
-          <button onClick={() => setScreen("pricing")} className="btn btn-primary btn-lg">
-            <Crown size={18} /> {t ? "Sblocca Premium" : "Unlock Premium"}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
+            {info.map((it, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                className="card" style={{ padding: "14px 16px", display: "flex", gap: 14, alignItems: "center", textAlign: "left" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, display: "grid", placeItems: "center", background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.indigo }}>
+                  <it.Icon size={22} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: C.ink, marginBottom: 2 }}>{it.title}</div>
+                  <div style={{ fontSize: 12, color: C.textSoft }}>{it.desc}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <button onClick={() => setScreen("pricing")} className="btn btn-primary btn-block btn-lg">
+            <Crown size={18} /> {t ? "Sblocca con Premium" : "Unlock with Premium"}
           </button>
+          <div style={{ textAlign: "center", marginTop: 12 }}>
+            <button onClick={() => setScreen("dashboard")} className="btn btn-ghost btn-md">
+              {t ? "Torna alla dashboard" : "Back to dashboard"}
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { C } from "../../theme.js";
 import { supabase } from "../../lib/supabase.js";
@@ -7,15 +8,39 @@ import {
 } from "../../data.js";
 import { Spinner, TopicBadge } from "../../components/primitives.jsx";
 import { TopicIcon } from "../../components/icons.jsx";
-import { Check, X, Lock, RotateCw } from "lucide-react";
+import { Check, X, Lock, RotateCw, Crown } from "lucide-react";
+
+/* Consumo gratuito persistito per utente (le flashcard non sono per-topic qui). */
+const cardsKey = (uid) => `of_freecards_v1:${uid || "anon"}`;
+const readSeen = (uid) => {
+  try { return parseInt(localStorage.getItem(cardsKey(uid)) || "0", 10) || 0; }
+  catch { return 0; }
+};
+const writeSeen = (uid, val) => {
+  try { localStorage.setItem(cardsKey(uid), String(val)); } catch { /* ignore */ }
+};
 
 export default function Flashcards({ lang, isPremium }) {
   const t = lang === "it";
+  const navigate = useNavigate();
   const [cards, setCards] = useState([]);
   const [loadingF, setLoadingF] = useState(true);
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [known, setKnown] = useState([]);
+  const [uid, setUid] = useState(null);
+  const [seen, setSeen] = useState(0);          // flashcard gratuite già consumate (persistente)
+  const [seenLoaded, setSeenLoaded] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUid(data?.user?.id || "anon"));
+  }, []);
+
+  useEffect(() => {
+    if (uid == null) return;
+    setSeen(readSeen(uid));
+    setSeenLoaded(true);
+  }, [uid]);
 
   useEffect(() => {
     const load = async () => {
@@ -30,19 +55,49 @@ export default function Flashcards({ lang, isPremium }) {
   }, []);
 
   const visibleCards = isPremium ? cards : cards.slice(0, FREE_FLASHCARDS);
+  const hitFreeLimit = !isPremium && seenLoaded && seen >= FREE_FLASHCARDS;
   const card = visibleCards[idx % Math.max(visibleCards.length, 1)];
 
   const next = (knew) => {
     if (knew && card) setKnown((k) => [...k, card.id]);
+    if (!isPremium) {
+      const nv = seen + 1;
+      setSeen(nv);
+      writeSeen(uid, nv);
+    }
     setFlipped(false);
     setTimeout(() => setIdx((i) => (i + 1) % Math.max(visibleCards.length, 1)), 180);
   };
 
-  if (loadingF) {
+  if (loadingF || !seenLoaded) {
     return (
       <div style={{ padding: "24px 18px 96px" }}>
         <h2 className="display" style={{ fontSize: 24, color: C.ink, marginBottom: 24 }}>Flashcards</h2>
         <Spinner />
+      </div>
+    );
+  }
+
+  /* Limite gratuito raggiunto → schermata di upgrade (niente loop infinito). */
+  if (hitFreeLimit) {
+    return (
+      <div style={{ padding: "40px 24px 96px", textAlign: "center", position: "relative" }}>
+        <div className="aurora" />
+        <div style={{ position: "relative", zIndex: 1 }} className="anim-fadeIn">
+          <div style={{ width: 84, height: 84, borderRadius: 24, margin: "0 auto 18px", display: "grid", placeItems: "center", background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.indigo }}>
+            <Lock size={38} />
+          </div>
+          <h2 className="display" style={{ fontSize: 24, color: C.ink, marginBottom: 10 }}>
+            {t ? `Hai usato le ${FREE_FLASHCARDS} flashcard gratuite` : `You've used your ${FREE_FLASHCARDS} free flashcards`}
+          </h2>
+          <p style={{ fontSize: 13.5, color: C.textSoft, lineHeight: 1.7, marginBottom: 26, maxWidth: 320, marginInline: "auto" }}>
+            {t ? `Sblocca tutte le ${cards.length}+ flashcard con ripetizione spaziata e tutti i topic con Premium.`
+               : `Unlock all ${cards.length}+ flashcards with spaced repetition across every topic with Premium.`}
+          </p>
+          <button className="btn btn-primary btn-lg" onClick={() => navigate("/pricing")}>
+            <Crown size={18} /> {t ? "Scopri Premium" : "See Premium Plans"}
+          </button>
+        </div>
       </div>
     );
   }
@@ -103,7 +158,7 @@ export default function Flashcards({ lang, isPremium }) {
         {!isPremium && (
           <div className="card" style={{ marginTop: 22, padding: 16, borderColor: C.borderHi, background: C.indigoDim }}>
             <div style={{ fontSize: 13, color: C.indigoDeep, fontWeight: 800, marginBottom: 4, display: "flex", alignItems: "center", gap: 7 }}>
-              <Lock size={14} /> {t ? `Solo ${FREE_FLASHCARDS} flashcard gratuite (${cards.length} totali)` : `Only ${FREE_FLASHCARDS} free flashcards (${cards.length} total)`}
+              <Lock size={14} /> {t ? `${Math.max(0, FREE_FLASHCARDS - seen)} flashcard gratuite rimanenti (${cards.length} totali)` : `${Math.max(0, FREE_FLASHCARDS - seen)} free flashcards left (${cards.length} total)`}
             </div>
             <div style={{ fontSize: 12, color: C.textSoft }}>{t ? "Sblocca tutte le flashcard con Premium" : "Unlock all flashcards with Premium"}</div>
           </div>
