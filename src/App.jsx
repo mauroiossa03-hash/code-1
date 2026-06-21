@@ -123,8 +123,9 @@ function AppShell() {
   const isMarketing = path === "/" || path === "/cfa" || path === "/pricing" || isCoursesArea;
   const introActive = path === "/" && !introDone;
 
-  // Layout largo (desktop-friendly) per marketing/corsi/player; stretto per app CFA/auth.
-  const wideLayout = isMarketing;
+  // Layout largo (desktop-friendly) ovunque tranne le pagine di autenticazione,
+  // che restano form centrati e stretti anche su schermi grandi.
+  const wideLayout = !isAuth;
 
   // TopBar
   const showMarketingTop = !isAuth && isMarketing && !isLessonPlayer && !introActive;
@@ -146,6 +147,7 @@ function AppShell() {
       <AnimatePresence mode="wait">
         <motion.div
           key={path}
+          className="page-frame"
           style={{ position: "relative", zIndex: 1 }}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
