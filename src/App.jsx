@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "./lib/supabase.js";
-import { TopBar, BottomNav } from "./components/Nav.jsx";
+import { BottomNav } from "./components/Nav.jsx";
 import MarketingTopBar from "./components/nav/MarketingTopBar.jsx";
 import CoursesBottomNav from "./components/nav/CoursesBottomNav.jsx";
 import BackgroundPaths from "./components/BackgroundPaths.jsx";
@@ -143,16 +143,16 @@ function AppShell() {
   const isCoursesArea = path.startsWith("/corsi") || path === "/i-miei-corsi";
   const isCfaApp = path.startsWith("/cfa/"); // dashboard/quiz/flashcards/exam
   const isLessonPlayer = /^\/corsi\/[^/]+\/lezione\//.test(path);
-  const isMarketing = path === "/" || path === "/cfa" || path === "/pricing" || isCoursesArea;
   const introActive = path === "/" && !introDone;
 
   // Layout largo (desktop-friendly) ovunque tranne le pagine di autenticazione,
   // che restano form centrati e stretti anche su schermi grandi.
   const wideLayout = !isAuth;
 
-  // TopBar
-  const showMarketingTop = !isAuth && isMarketing && !isLessonPlayer && !introActive;
-  const showAppTop = !isAuth && (isCfaApp || path === "/profilo") && !!user;
+  // TopBar unica su tutto il sito (anche dentro il CFA): stesse opzioni
+  // CFA · Corsi · Pricing · Profilo. La navigazione di sezione del CFA
+  // (Dashboard/Quiz/Flashcard/Esame) resta nella bottom nav.
+  const showMarketingTop = !isAuth && !isLessonPlayer && !introActive;
 
   // BottomNav
   const showCfaBottom = (isCfaApp || path === "/profilo") && !!user;
@@ -165,7 +165,6 @@ function AppShell() {
       <BackgroundPaths />
       {introActive && <LandingIntro lang={lang} onEnter={() => setIntroDone(true)} />}
       {showMarketingTop && <MarketingTopBar lang={lang} setLang={setLang} user={user} onLogout={handleLogout} />}
-      {showAppTop && <TopBar lang={lang} setLang={setLang} isPremium={isPremium} setScreen={setScreen} screen={currentScreen} />}
 
       <AnimatePresence mode="wait">
         <motion.div
