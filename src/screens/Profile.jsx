@@ -13,16 +13,21 @@ export default function Profile({ user, setUser, setScreen, lang, setLang, isPre
   const [examHistory, setExamHistory] = useState([]);
 
   useEffect(() => {
+    if (!user?.id) return;
     const load = async () => {
-      const { data } = await supabase
+      // Filtriamo esplicitamente per user_id: la RLS lo fa già, ma essere espliciti
+      // evita info-leak in caso di RLS spenta per errore e migliora la query plan.
+      const { data, error } = await supabase
         .from("exam_results")
         .select("score, total, module, created_at")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(5);
+      if (error) { console.error("exam_results load error:", error); return; }
       if (data) setExamHistory(data);
     };
     load();
-  }, []);
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

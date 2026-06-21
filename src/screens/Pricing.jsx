@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { C } from "../theme.js";
 import { buildCfaCheckoutUrl, buildCourseCheckoutUrl } from "../lib/checkout.js";
 import { fetchPublishedCourses, formatDuration } from "../data/courses.js";
 import {
-  ArrowLeft, ArrowRight, Check, X, ShieldCheck, Crown, MonitorPlay, Gauge, Clock, ListVideo,
+  ArrowLeft, ArrowRight, Check, X, ShieldCheck, Crown, MonitorPlay, Gauge, Clock,
+  AlertTriangle,
 } from "../components/icons.jsx";
 
 const LEVELS = {
@@ -20,6 +21,10 @@ export default function Pricing({ lang, user }) {
   const [tab, setTab] = useState("cfa"); // cfa | courses
   const [billing, setBilling] = useState("monthly");
   const [courses, setCourses] = useState(null);
+  // Banner di errore mostrato in cima quando il checkout di un corso non parte
+  // (di solito perché manca lemonsqueezy_variant_id sul corso). Prima il flow
+  // navigava in silenzio al catalogo: l'utente non capiva perché.
+  const [checkoutError, setCheckoutError] = useState("");
 
   useEffect(() => {
     fetchPublishedCourses().then(setCourses).catch(() => setCourses([]));
@@ -51,10 +56,13 @@ export default function Pricing({ lang, user }) {
   const handleCourseCta = (course) => {
     if (!user) { navigate(`/login?next=${encodeURIComponent("/pricing")}`); return; }
     try {
+      setCheckoutError("");
       window.location.href = buildCourseCheckoutUrl(user, course);
     } catch (e) {
-      console.error(e);
-      navigate(`/corsi/${course.slug}`);
+      console.error("buildCourseCheckoutUrl failed:", e);
+      setCheckoutError(t
+        ? `Acquisto temporaneamente non disponibile per “${course.title}”. Stiamo lavorando per riattivarlo a breve.`
+        : `Checkout temporarily unavailable for “${course.title}”. We're working to bring it back soon.`);
     }
   };
 
@@ -68,6 +76,32 @@ export default function Pricing({ lang, user }) {
           </Link>
         )}
 
+        {/* Banner errore checkout */}
+        <AnimatePresence>
+          {checkoutError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+              role="alert"
+              style={{
+                marginBottom: 16, padding: "12px 14px", borderRadius: 12,
+                background: "rgba(220, 38, 38, 0.08)", border: "1px solid rgba(220, 38, 38, 0.25)",
+                color: C.red, fontSize: 13, lineHeight: 1.55,
+                display: "flex", alignItems: "flex-start", gap: 10,
+              }}
+            >
+              <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+              <div style={{ flex: 1 }}>{checkoutError}</div>
+              <button
+                onClick={() => setCheckoutError("")}
+                aria-label="dismiss"
+                style={{ background: "transparent", border: "none", color: C.red, cursor: "pointer", padding: 0, lineHeight: 1 }}
+              >
+                <X size={16} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <div className="tag" style={{ background: "rgba(255,255,255,0.7)", color: C.indigo, border: `1px solid ${C.border}`, marginBottom: 12 }}>{t ? "Prezzi" : "Pricing"}</div>
           <h2 className="display" style={{ fontSize: 30, color: C.ink, marginBottom: 8 }}>{t ? "Scegli cosa imparare" : "Choose what to learn"}</h2>
@@ -78,7 +112,7 @@ export default function Pricing({ lang, user }) {
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
           <div style={{ display: "flex", background: C.surface, borderRadius: 12, padding: 4, border: `1px solid ${C.border}`, boxShadow: "var(--shadow-sm)" }}>
             {[["cfa", t ? "CFA Premium" : "CFA Premium"], ["courses", t ? "Corsi" : "Courses"]].map(([id, label]) => (
-              <button key={id} onClick={() => setTab(id)}
+              <button key={id} onClick={() => { setTab(id); setCheckoutError(""); }}
                 style={{ padding: "9px 20px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 700, fontFamily: "var(--font-ui)",
                   background: tab === id ? `linear-gradient(135deg, ${C.indigo}, ${C.indigoDeep})` : "transparent",
                   color: tab === id ? "#fff" : C.textSoft, transition: "all .2s" }}>

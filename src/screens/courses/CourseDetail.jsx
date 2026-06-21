@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { C } from "../../theme.js";
 import { fetchCourseBySlug, isEnrolled, formatDuration } from "../../data/courses.js";
 import { buildCourseCheckoutUrl } from "../../lib/checkout.js";
 import { Spinner } from "../../components/primitives.jsx";
 import {
   ArrowLeft, PlayCircle, Lock, Clock, Gauge, Check, ShieldCheck, ListVideo,
+  AlertTriangle, X,
 } from "../../components/icons.jsx";
 
 const LEVELS = {
@@ -21,6 +22,8 @@ export default function CourseDetail({ lang, user }) {
   const navigate = useNavigate();
   const [course, setCourse] = useState(undefined); // undefined=loading, null=not found
   const [enrolled, setEnrolled] = useState(false);
+  // Banner inline al posto di alert() nativo quando manca lemonsqueezy_variant_id.
+  const [checkoutError, setCheckoutError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -50,10 +53,13 @@ export default function CourseDetail({ lang, user }) {
   const startCheckout = () => {
     if (!user) { navigate(`/login?next=${encodeURIComponent(`/corsi/${slug}`)}`); return; }
     try {
+      setCheckoutError("");
       window.location.href = buildCourseCheckoutUrl(user, course);
     } catch (e) {
-      console.error(e);
-      alert(t ? "Checkout non disponibile per questo corso." : "Checkout unavailable for this course.");
+      console.error("buildCourseCheckoutUrl failed:", e);
+      setCheckoutError(t
+        ? "Acquisto temporaneamente non disponibile per questo corso. Stiamo lavorando per riattivarlo a breve."
+        : "Checkout temporarily unavailable for this course. We're working to bring it back soon.");
     }
   };
 
@@ -69,6 +75,32 @@ export default function CourseDetail({ lang, user }) {
         <Link to="/corsi" className="btn btn-ghost btn-sm" style={{ marginBottom: 14 }}>
           <ArrowLeft size={15} /> {t ? "Catalogo" : "Catalog"}
         </Link>
+
+        {/* Banner errore checkout */}
+        <AnimatePresence>
+          {checkoutError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+              role="alert"
+              style={{
+                marginBottom: 14, padding: "12px 14px", borderRadius: 12,
+                background: "rgba(220, 38, 38, 0.08)", border: "1px solid rgba(220, 38, 38, 0.25)",
+                color: C.red, fontSize: 13, lineHeight: 1.55,
+                display: "flex", alignItems: "flex-start", gap: 10,
+              }}
+            >
+              <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+              <div style={{ flex: 1 }}>{checkoutError}</div>
+              <button
+                onClick={() => setCheckoutError("")}
+                aria-label="dismiss"
+                style={{ background: "transparent", border: "none", color: C.red, cursor: "pointer", padding: 0, lineHeight: 1 }}
+              >
+                <X size={16} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Hero cover / trailer */}
         <div style={{ borderRadius: 20, overflow: "hidden", marginBottom: 18, boxShadow: "var(--shadow-md)" }}>

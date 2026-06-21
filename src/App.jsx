@@ -7,7 +7,6 @@ import MarketingTopBar from "./components/nav/MarketingTopBar.jsx";
 import CoursesBottomNav from "./components/nav/CoursesBottomNav.jsx";
 import BackgroundPaths from "./components/BackgroundPaths.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import PremiumRoute from "./components/PremiumRoute.jsx";
 
 import LandingIntro from "./components/LandingIntro.jsx";
 import Homepage from "./screens/home/Homepage.jsx";
@@ -58,6 +57,17 @@ function userFromSession(session) {
   };
 }
 
+// Helper: legge il parametro ?next= dalla URL corrente. Usato dopo login/OAuth
+// per riportare l'utente alla pagina che voleva raggiungere prima del paywall.
+function readNextParam() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("next") || "";
+  } catch {
+    return "";
+  }
+}
+
 function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -76,7 +86,12 @@ function AppShell() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(userFromSession(session));
-        if (AUTH_PATHS.includes(window.location.pathname)) navigate("/cfa/dashboard");
+        // Solo se siamo ancora su una pagina di auth, naviga: rispetta ?next= se presente,
+        // altrimenti default alla Dashboard CFA. Copre OAuth (Google) e conferma email.
+        if (AUTH_PATHS.includes(window.location.pathname)) {
+          const next = readNextParam();
+          navigate(next || "/cfa/dashboard");
+        }
       } else {
         setUser(null);
       }
@@ -112,7 +127,15 @@ function AppShell() {
   }, [user]);
 
   const setScreen = (name) => navigate(SCREEN_TO_PATH[name] || "/");
-  const handleSetUser = (u) => { setUser(u); navigate("/cfa/dashboard"); };
+
+  // Dopo email+password login/register, Login.jsx chiama setUser passando l'oggetto
+  // utente. Qui aggiorniamo lo state e gestiamo il redirect rispettando ?next=.
+  const handleSetUser = (u) => {
+    setUser(u);
+    const next = readNextParam();
+    navigate(next || "/cfa/dashboard");
+  };
+
   const handleLogout = async () => { await supabase.auth.signOut(); setUser(null); navigate("/"); };
 
   /* ── Navigazione contesto-aware ── */
@@ -155,12 +178,12 @@ function AppShell() {
           transition={{ duration: 0.25, ease: [0.2, 0.7, 0.3, 1] }}
         >
           <Routes location={location}>
-            <Route path="/" element={<Homepage lang={lang} />} />
+            <Route path="/" element={<Homepage lang={lang} user={user} />} />
             <Route path="/cfa" element={user ? <Navigate to="/cfa/dashboard" replace /> : <CfaLanding lang={lang} />} />
 
-            <Route path="/login" element={<Login setScreen={setScreen} setUser={handleSetUser} lang={lang} />} />
-            <Route path="/register" element={<Register setScreen={setScreen} setUser={handleSetUser} lang={lang} />} />
-            <Route path="/forgot" element={<Forgot setScreen={setScreen} lang={lang} />} />
+            <Route path="/login" element={<Login setUser={handleSetUser} lang={lang} />} />
+            <Route path="/register" element={<Register setUser={handleSetUser} lang={lang} />} />
+            <Route path="/forgot" element={<Forgot lang={lang} />} />
 
             <Route path="/pricing" element={<Pricing lang={lang} user={user} />} />
             <Route path="/profilo" element={
@@ -184,10 +207,13 @@ function AppShell() {
                 <Flashcards lang={lang} isPremium={isPremium} />
               </ProtectedRoute>
             } />
+            {/* /cfa/exam: solo auth richiesta. Il gate Premium è gestito DENTRO Exam.jsx
+                con una schermata lock-up (icona + descrizione + CTA "Sblocca Premium"),
+                che converte meglio di un redirect secco a /pricing. */}
             <Route path="/cfa/exam" element={
-              <PremiumRoute user={user} isPremium={isPremium}>
+              <ProtectedRoute user={user}>
                 <Exam lang={lang} isPremium={isPremium} setScreen={setScreen} />
-              </PremiumRoute>
+              </ProtectedRoute>
             } />
 
             {/* Corsi */}

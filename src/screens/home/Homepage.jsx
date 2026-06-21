@@ -16,16 +16,20 @@ const reveal = {
   }),
 };
 
-export default function Homepage({ lang }) {
+export default function Homepage({ lang, user }) {
   const t = lang === "it";
+  const isLogged = !!user;
 
+  // Per i loggati la card CFA punta direttamente alla Dashboard (CTA "Vai al CFA"),
+  // per gli anonimi alla landing prodotto (CTA "Esplora CFA").
   const products = [
     {
-      Icon: GraduationCap, to: "/cfa",
-      title: t ? "CFA Prep" : "CFA Prep",
+      Icon: GraduationCap,
+      to: isLogged ? "/cfa/dashboard" : "/cfa",
+      title: "CFA Prep",
       desc: t ? "Quiz, flashcard e simulatore d'esame su tutti e 10 i topic del CFA Level 1."
               : "Quizzes, flashcards and a full exam simulator across all 10 CFA Level 1 topics.",
-      cta: t ? "Esplora CFA" : "Explore CFA",
+      cta: isLogged ? (t ? "Vai al CFA" : "Go to CFA") : (t ? "Esplora CFA" : "Explore CFA"),
       tint: C.indigo,
     },
     {
@@ -55,6 +59,15 @@ export default function Homepage({ lang }) {
       desc: t ? "Tutta la piattaforma è disponibile in due lingue." : "The whole platform is available in two languages." },
   ];
 
+  // Saluto e CTA cambiano in base allo stato di login. Per il loggato:
+  // - tag: "Bentornato, <nome>"
+  // - hero CTA: "Vai al CFA" + "I miei corsi"
+  // - nessuna riga "Nessuna carta richiesta"
+  // - niente CTA band finale "Crea il tuo account"
+  const tagText = isLogged
+    ? (t ? `Bentornato, ${user.name}` : `Welcome back, ${user.name}`)
+    : (t ? "Formazione finanziaria di alto livello" : "High-level financial education");
+
   return (
     <div style={{ position: "relative", minHeight: "100dvh", overflow: "hidden", paddingBottom: 60 }}>
       <div className="aurora"><div className="aurora-grid" /></div>
@@ -62,7 +75,7 @@ export default function Homepage({ lang }) {
       <main style={{ position: "relative", zIndex: 1, padding: "8px 22px 0", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
         <motion.div variants={reveal} custom={0} initial="hidden" animate="show"
           className="tag" style={{ background: "rgba(255,255,255,0.7)", color: C.indigo, border: `1px solid ${C.border}`, marginTop: 14, marginBottom: 18, boxShadow: "var(--shadow-sm)" }}>
-          <Sparkles size={13} /> {t ? "Formazione finanziaria di alto livello" : "High-level financial education"}
+          <Sparkles size={13} /> {tagText}
         </motion.div>
 
         <motion.div variants={reveal} custom={1} initial="hidden" animate="show"
@@ -85,23 +98,38 @@ export default function Homepage({ lang }) {
 
         <motion.div variants={reveal} custom={4} initial="hidden" animate="show"
           style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginBottom: 14 }}>
-          <Link to="/cfa" className="btn btn-primary btn-lg btn-glow">
-            {t ? "Inizia col CFA" : "Start with CFA"} <ArrowRight size={18} />
-          </Link>
-          <Link to="/corsi" className="btn btn-ghost btn-lg">
-            {t ? "Esplora i corsi" : "Explore courses"}
-          </Link>
+          {isLogged ? (
+            <>
+              <Link to="/cfa/dashboard" className="btn btn-primary btn-lg btn-glow">
+                {t ? "Vai al CFA" : "Go to CFA"} <ArrowRight size={18} />
+              </Link>
+              <Link to="/i-miei-corsi" className="btn btn-ghost btn-lg">
+                {t ? "I miei corsi" : "My courses"}
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/cfa" className="btn btn-primary btn-lg btn-glow">
+                {t ? "Inizia col CFA" : "Start with CFA"} <ArrowRight size={18} />
+              </Link>
+              <Link to="/corsi" className="btn btn-ghost btn-lg">
+                {t ? "Esplora i corsi" : "Explore courses"}
+              </Link>
+            </>
+          )}
         </motion.div>
 
-        <motion.div variants={reveal} custom={5} initial="hidden" animate="show"
-          style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: C.textMute, marginBottom: 8, fontWeight: 600 }}>
-          <ShieldCheck size={15} color={C.green} /> {t ? "Nessuna carta richiesta per iniziare" : "No card required to start"}
-        </motion.div>
+        {!isLogged && (
+          <motion.div variants={reveal} custom={5} initial="hidden" animate="show"
+            style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: C.textMute, marginBottom: 8, fontWeight: 600 }}>
+            <ShieldCheck size={15} color={C.green} /> {t ? "Nessuna carta richiesta per iniziare" : "No card required to start"}
+          </motion.div>
+        )}
 
         {/* Product cards */}
         <div className="cards-grid cols-3" style={{ marginTop: 44, width: "100%", maxWidth: "var(--page-max, 480px)" }}>
           {products.map((p, i) => (
-            <motion.div key={p.to} variants={reveal} custom={i} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }} style={{ height: "100%" }}>
+            <motion.div key={p.to + p.title} variants={reveal} custom={i} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }} style={{ height: "100%" }}>
               <Link to={p.to} className="card card-hover" style={{ height: "100%", padding: 20, textAlign: "left", display: "flex", gap: 16, alignItems: "flex-start", textDecoration: "none" }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, display: "grid", placeItems: "center",
                   background: `${p.tint}14`, color: p.tint, border: `1px solid ${p.tint}33` }}>
@@ -142,23 +170,27 @@ export default function Homepage({ lang }) {
           </div>
         </div>
 
-        {/* CTA band */}
-        <motion.div variants={reveal} initial="hidden" whileInView="show" viewport={{ once: true }}
-          className="sheen" style={{ marginTop: 56, width: "100%", maxWidth: "var(--page-max, 480px)", padding: "38px 28px", borderRadius: 26, textAlign: "center",
-            background: `linear-gradient(150deg, ${C.ink}, ${C.navy} 60%, ${C.indigoDeep})`, boxShadow: "var(--shadow-lg)" }}>
-          <h2 className="display" style={{ fontSize: 26, color: "#fff", marginBottom: 10 }}>
-            {t ? "Pronto a iniziare?" : "Ready to start?"}
-          </h2>
-          <p style={{ fontSize: 14, color: C.onDarkSoft, marginBottom: 22, lineHeight: 1.6 }}>
-            {t ? "Crea un account gratuito ed esplora CFA Prep e i corsi." : "Create a free account and explore CFA Prep and the courses."}
-          </p>
-          <Link to="/register" className="btn btn-white btn-lg">
-            {t ? "Crea il tuo account" : "Create your account"} <ArrowRight size={18} />
-          </Link>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: C.onDarkSoft, marginTop: 14 }}>
-            <Check size={14} color={C.green} /> {t ? "Gratis per cominciare" : "Free to start"}
-          </div>
-        </motion.div>
+        {/* CTA band: solo per anonimi.
+           Per i loggati l'invito a "creare un account" non ha senso;
+           gli shortcut alle loro aree sono già nei bottoni in hero + topbar. */}
+        {!isLogged && (
+          <motion.div variants={reveal} initial="hidden" whileInView="show" viewport={{ once: true }}
+            className="sheen" style={{ marginTop: 56, width: "100%", maxWidth: "var(--page-max, 480px)", padding: "38px 28px", borderRadius: 26, textAlign: "center",
+              background: `linear-gradient(150deg, ${C.ink}, ${C.navy} 60%, ${C.indigoDeep})`, boxShadow: "var(--shadow-lg)" }}>
+            <h2 className="display" style={{ fontSize: 26, color: "#fff", marginBottom: 10 }}>
+              {t ? "Pronto a iniziare?" : "Ready to start?"}
+            </h2>
+            <p style={{ fontSize: 14, color: C.onDarkSoft, marginBottom: 22, lineHeight: 1.6 }}>
+              {t ? "Crea un account gratuito ed esplora CFA Prep e i corsi." : "Create a free account and explore CFA Prep and the courses."}
+            </p>
+            <Link to="/register" className="btn btn-white btn-lg">
+              {t ? "Crea il tuo account" : "Create your account"} <ArrowRight size={18} />
+            </Link>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 12, color: C.onDarkSoft, marginTop: 14 }}>
+              <Check size={14} color={C.green} /> {t ? "Gratis per cominciare" : "Free to start"}
+            </div>
+          </motion.div>
+        )}
 
         {/* Footer */}
         <div style={{ marginTop: 44, paddingTop: 22, borderTop: `1px solid ${C.border}`, width: "100%", maxWidth: "var(--page-max, 480px)",

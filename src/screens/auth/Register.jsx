@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { C } from "../../theme.js";
 import { supabase } from "../../lib/supabase.js";
@@ -6,8 +7,19 @@ import { Logo } from "../../components/primitives.jsx";
 import { AuthInput, AuthDivider, GoogleBtn, ErrorBanner } from "../../components/auth.jsx";
 import { ArrowLeft, ArrowRight, AlertTriangle, Mail } from "../../components/icons.jsx";
 
-export default function Register({ setScreen, setUser, lang }) {
+export default function Register({ setUser, lang }) {
   const t = lang === "it";
+  const navigate = useNavigate();
+
+  // ?next=... arriva dai paywall e va propagato al login (i pulsanti "Accedi" e
+  // "Vai al login"). Il redirect post-auth lo fa App.jsx (handleSetUser +
+  // onAuthStateChange leggono lo stesso parametro). setUser è chiamato solo nel
+  // ramo con conferma email disattivata; nel ramo standard (step 2) l'utente
+  // entra dopo aver cliccato il link nell'email.
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get("next") || "";
+  const nextSuffix = next ? `?next=${encodeURIComponent(next)}` : "";
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,7 +60,7 @@ export default function Register({ setScreen, setUser, lang }) {
                : `We sent a confirmation link to ${email}. Click the link to activate your account.`}
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button onClick={() => setScreen("login")} className="btn btn-primary btn-block" style={{ padding: 13 }}>
+            <button onClick={() => navigate(`/login${nextSuffix}`)} className="btn btn-primary btn-block" style={{ padding: 13 }}>
               {t ? "Vai al login" : "Go to login"} <ArrowRight size={17} />
             </button>
             <button onClick={() => setStep(1)} className="btn btn-ghost btn-block" style={{ padding: 11 }}>
@@ -65,7 +77,7 @@ export default function Register({ setScreen, setUser, lang }) {
       <div className="aurora" />
       <div style={{ position: "relative", zIndex: 1, padding: "20px 22px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Logo size={17} />
-        <button onClick={() => setScreen("login")} className="btn btn-ghost btn-sm">
+        <button onClick={() => navigate(`/login${nextSuffix}`)} className="btn btn-ghost btn-sm">
           <ArrowLeft size={15} /> {t ? "Accedi" : "Sign in"}
         </button>
       </div>
@@ -104,7 +116,7 @@ export default function Register({ setScreen, setUser, lang }) {
 
         <div style={{ textAlign: "center", marginTop: 18, fontSize: 13, color: C.textSoft }}>
           {t ? "Hai già un account?" : "Already have an account?"}{" "}
-          <button onClick={() => setScreen("login")} style={{ background: "none", border: "none", color: C.indigo, fontWeight: 800, cursor: "pointer", fontSize: 13 }}>
+          <button onClick={() => navigate(`/login${nextSuffix}`)} style={{ background: "none", border: "none", color: C.indigo, fontWeight: 800, cursor: "pointer", fontSize: 13 }}>
             {t ? "Accedi" : "Sign in"}
           </button>
         </div>

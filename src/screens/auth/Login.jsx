@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { C } from "../../theme.js";
 import { supabase } from "../../lib/supabase.js";
@@ -6,8 +7,18 @@ import { Logo } from "../../components/primitives.jsx";
 import { AuthInput, AuthDivider, GoogleBtn, ErrorBanner } from "../../components/auth.jsx";
 import { ArrowLeft, ArrowRight, AlertTriangle } from "../../components/icons.jsx";
 
-export default function Login({ setScreen, setUser, lang }) {
+export default function Login({ setUser, lang }) {
   const t = lang === "it";
+  const navigate = useNavigate();
+
+  // ?next=... viene impostato dai paywall (PremiumRoute, CourseDetail, Pricing…) e
+  // va propagato a /register e /forgot così l'utente, qualsiasi flow scelga,
+  // dopo l'auth torna dove voleva. Il redirect finale lo fa App.jsx (handleSetUser
+  // e onAuthStateChange leggono lo stesso parametro).
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get("next") || "";
+  const nextSuffix = next ? `?next=${encodeURIComponent(next)}` : "";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,7 +47,7 @@ export default function Login({ setScreen, setUser, lang }) {
       <div className="aurora" />
       <div style={{ position: "relative", zIndex: 1, padding: "20px 22px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Logo size={17} />
-        <button onClick={() => setScreen("landing")} className="btn btn-ghost btn-sm">
+        <button onClick={() => navigate("/")} className="btn btn-ghost btn-sm">
           <ArrowLeft size={15} /> {t ? "Torna" : "Back"}
         </button>
       </div>
@@ -59,7 +70,7 @@ export default function Login({ setScreen, setUser, lang }) {
         <AuthInput label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" />
 
         <div style={{ textAlign: "right", marginTop: -6, marginBottom: 18 }}>
-          <button onClick={() => setScreen("forgot")} style={{ background: "none", border: "none", color: C.indigo, fontSize: 12.5, cursor: "pointer", fontWeight: 700 }}>
+          <button onClick={() => navigate("/forgot")} style={{ background: "none", border: "none", color: C.indigo, fontSize: 12.5, cursor: "pointer", fontWeight: 700 }}>
             {t ? "Password dimenticata?" : "Forgot password?"}
           </button>
         </div>
@@ -72,7 +83,7 @@ export default function Login({ setScreen, setUser, lang }) {
 
         <div style={{ textAlign: "center", marginTop: 22, fontSize: 13, color: C.textSoft }}>
           {t ? "Non hai un account?" : "Don't have an account?"}{" "}
-          <button onClick={() => setScreen("register")} style={{ background: "none", border: "none", color: C.indigo, fontWeight: 800, cursor: "pointer", fontSize: 13 }}>
+          <button onClick={() => navigate(`/register${nextSuffix}`)} style={{ background: "none", border: "none", color: C.indigo, fontWeight: 800, cursor: "pointer", fontSize: 13 }}>
             {t ? "Registrati" : "Sign up"}
           </button>
         </div>
