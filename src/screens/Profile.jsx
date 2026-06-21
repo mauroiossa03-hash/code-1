@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { C } from "../theme.js";
 import { supabase } from "../lib/supabase.js";
 import {
-  Crown, Globe, CalendarDays, KeyRound, LogOut, ChevronRight, Sparkles,
+  Crown, Globe, CalendarDays, KeyRound, LogOut, ChevronRight, Sparkles, BookOpen,
 } from "../components/icons.jsx";
 
 export default function Profile({ user, setUser, setScreen, lang, setLang, isPremium }) {
@@ -55,6 +56,18 @@ export default function Profile({ user, setUser, setScreen, lang, setLang, isPre
             </span>
           )}
         </div>
+
+        {/* I miei corsi — shortcut */}
+        <Link to="/i-miei-corsi" className="card card-hover" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 13, marginBottom: 22, textDecoration: "none" }}>
+          <div style={{ width: 42, height: 42, borderRadius: 12, display: "grid", placeItems: "center", background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.violet, flexShrink: 0 }}>
+            <BookOpen size={20} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 800, color: C.ink }}>{t ? "I miei corsi" : "My Courses"}</div>
+            <div style={{ fontSize: 12, color: C.textSoft }}>{t ? "Riprendi da dove hai lasciato" : "Pick up where you left off"}</div>
+          </div>
+          <ChevronRight size={20} color={C.indigo} />
+        </Link>
 
         {/* Exam history */}
         {examHistory.length > 0 && (

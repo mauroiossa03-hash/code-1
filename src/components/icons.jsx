@@ -29,4 +29,7 @@ export {
   Mail, Sparkles, Clock, ShieldCheck, Zap, Brain, Timer, Flame, CalendarDays,
   LogOut, KeyRound, Star, CheckCircle2, AlertTriangle, BarChart3, Target,
   TrendingUp, GraduationCap, Rocket, Gauge, BookOpen, Wand2, PartyPopper,
+  Play, PlayCircle, Video, ListVideo, Download, ChevronDown, Home,
+  GitGraph, Layers, Award, PlaySquare, MonitorPlay, Globe2, LineChart,
+  Briefcase, Wallet, Coins, CircleDot,
 } from "lucide-react";

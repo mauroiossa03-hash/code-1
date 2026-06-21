@@ -80,15 +80,15 @@ export default function LandingIntro({ onEnter, lang }) {
       transition={{ duration: 0.7 }}
       style={{
         position: "fixed", inset: 0, zIndex: 50, overflow: "hidden",
-        background: "#120403", touchAction: "none",
+        background: "#EAEFFB", touchAction: "none",
       }}
     >
       {/* evolving candlestick chart */}
       <div style={{ position: "absolute", inset: 0, opacity: 1 - progress * 0.55, transition: "opacity .1s linear" }}>
         <CandlestickBackground />
       </div>
-      {/* warm vignette so the book reads clearly */}
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 48%, rgba(0,0,0,0.15), rgba(8,3,2,0.78) 78%)" }} />
+      {/* soft indigo vignette so the book reads clearly */}
+      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 48%, rgba(234,239,251,0.1), rgba(20,28,70,0.32) 78%)" }} />
 
       {/* 3D book */}
       <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
@@ -103,15 +103,15 @@ export default function LandingIntro({ onEnter, lang }) {
       <div style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between",
         padding: "48px 20px", opacity: 1 - progress * 1.4 }}>
-        <h1 className="display" style={{ margin: 0, color: "#fff", fontSize: "clamp(34px,9vw,64px)", textShadow: "0 4px 30px rgba(0,0,0,0.6)" }}>
-          Odds<span style={{ color: "#F4C020" }}>Finance</span>
+        <h1 className="display" style={{ margin: 0, color: "#0B1437", fontSize: "clamp(34px,9vw,64px)", textShadow: "0 4px 30px rgba(124,92,255,0.18)" }}>
+          Odds<span style={{ color: "#7C5CFF" }}>Finance</span>
         </h1>
-        <div style={{ textAlign: "center", color: "#FFE0B8" }}>
+        <div style={{ textAlign: "center", color: "#3B5BFF" }}>
           <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: ".18em", textTransform: "uppercase", marginBottom: 10 }}>
             {t ? "Scorri per entrare" : "Scroll to enter"}
           </div>
           <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.4, repeat: Infinity }}
-            style={{ fontSize: 22, color: "#F4C020" }}>↓</motion.div>
+            style={{ fontSize: 22, color: "#3B5BFF" }}>↓</motion.div>
         </div>
       </div>
 
@@ -119,7 +119,7 @@ export default function LandingIntro({ onEnter, lang }) {
       <button onClick={finish}
         style={{ position: "absolute", top: 18, right: 18, zIndex: 5, cursor: "pointer",
           padding: "7px 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, fontFamily: "var(--font-ui)",
-          color: "#fff", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.25)" }}>
+          color: "#0B1437", background: "rgba(255,255,255,0.55)", border: "1px solid rgba(60,80,180,0.25)" }}>
         {t ? "Salta" : "Skip"}
       </button>
     </motion.div>

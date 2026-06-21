@@ -3,8 +3,8 @@ import { useEffect, useRef } from "react";
 /*
   Animated candlestick chart background.
   Candles are continuously generated on the right and scroll left forever,
-  evolving via a mean-reverting random walk. Warm palette (red grid, gold/orange
-  candles, dark backdrop) echoing a live trading terminal.
+  evolving via a mean-reverting random walk. Uses the app's own "Aurora Glass"
+  light palette (off-white canvas, indigo/violet grid, green/red candles).
 */
 export default function CandlestickBackground({ style }) {
   const canvasRef = useRef(null);
@@ -58,33 +58,33 @@ export default function CandlestickBackground({ style }) {
     }
 
     function drawGrid(t) {
-      // warm dark backdrop, same red/orange/gold palette — base gradient slowly breathes
+      // light Aurora Glass backdrop — base gradient slowly breathes
       const wobble = Math.sin(t * 0.00018) * 0.5 + 0.5;
       const grad = ctx.createLinearGradient(0, 0, width, height);
-      grad.addColorStop(0, "#1a0805");
-      grad.addColorStop(0.5 + wobble * 0.1, "#2a0a08");
-      grad.addColorStop(1, "#120403");
+      grad.addColorStop(0, "#EAEFFB");
+      grad.addColorStop(0.5 + wobble * 0.1, "#F2F6FE");
+      grad.addColorStop(1, "#FFFFFF");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
 
-      // two drifting glows so the backdrop keeps moving, not just the candles
+      // two drifting indigo/violet glows so the backdrop keeps moving, not just the candles
       const gx1 = width * (0.5 + Math.sin(t * 0.00021) * 0.28);
       const gy1 = height * (0.35 + Math.cos(t * 0.00017) * 0.18);
       const glow1 = ctx.createRadialGradient(gx1, gy1, 0, gx1, gy1, width * 0.55);
-      glow1.addColorStop(0, "rgba(255,140,40,0.24)");
-      glow1.addColorStop(1, "rgba(255,80,30,0)");
+      glow1.addColorStop(0, "rgba(59,91,255,0.14)");
+      glow1.addColorStop(1, "rgba(59,91,255,0)");
       ctx.fillStyle = glow1;
       ctx.fillRect(0, 0, width, height);
 
       const gx2 = width * (0.5 + Math.cos(t * 0.00013 + 2) * 0.32);
       const gy2 = height * (0.65 + Math.sin(t * 0.00019 + 1) * 0.2);
       const glow2 = ctx.createRadialGradient(gx2, gy2, 0, gx2, gy2, width * 0.4);
-      glow2.addColorStop(0, "rgba(244,192,32,0.14)");
-      glow2.addColorStop(1, "rgba(244,192,32,0)");
+      glow2.addColorStop(0, "rgba(124,92,255,0.12)");
+      glow2.addColorStop(1, "rgba(124,92,255,0)");
       ctx.fillStyle = glow2;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.strokeStyle = "rgba(255,70,40,0.14)";
+      ctx.strokeStyle = "rgba(60,80,180,0.10)";
       ctx.lineWidth = 1;
       const gx = 64;
       for (let x = -(offset % gx); x < width; x += gx) {
@@ -111,7 +111,7 @@ export default function CandlestickBackground({ style }) {
         const cd = candles[i];
         const x = i * spacing - offset + spacing;
         const up = cd.c >= cd.o;
-        const color = up ? "#F4C020" : "#FF5230";
+        const color = up ? "#12A767" : "#E23A63";
         const yo = priceToY(cd.o), yc = priceToY(cd.c);
         const yh = priceToY(cd.h), yl = priceToY(cd.l);
 
@@ -123,9 +123,9 @@ export default function CandlestickBackground({ style }) {
         const top = Math.min(yo, yc);
         const bh = Math.max(2, Math.abs(yc - yo));
         ctx.shadowColor = color;
-        ctx.shadowBlur = up ? 14 : 8;
+        ctx.shadowBlur = up ? 6 : 4;
         ctx.fillStyle = color;
-        ctx.globalAlpha = up ? 0.95 : 0.85;
+        ctx.globalAlpha = up ? 0.9 : 0.82;
         ctx.fillRect(x - bodyW / 2, top, bodyW, bh);
         ctx.shadowBlur = 0;
       }
