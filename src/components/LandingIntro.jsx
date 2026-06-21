@@ -66,8 +66,8 @@ export default function LandingIntro({ onEnter, lang }) {
 
   const dist = Math.max(110, Math.min(w * 0.26, 320));     // avvicinamento animali
   const clash = Math.max(0, (progress - 0.86) / 0.14);     // 0→1 nello scontro finale
-  const shakeX = clash > 0 ? Math.sin(progress * 130) * clash * 9 : 0;
-  const hint = progress < 0.06;
+  const shakeX = clash > 0 ? Math.sin(progress * 130) * clash * 6 : 0;
+  const textFade = Math.max(0, 1 - progress * 2.2);        // titolo + hint svaniscono scorrendo
 
   return (
     <motion.div
@@ -93,8 +93,8 @@ export default function LandingIntro({ onEnter, lang }) {
           <GroundShadow />
           <motion.img
             src="/bull.png" alt="Toro"
-            animate={{ y: [0, -14, 0], rotate: [0, -1.5, 0] }}
-            transition={{ duration: 0.4, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ y: [0, -8, 0], rotate: [0, -1, 0] }}
+            transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut" }}
             style={{ height: "clamp(180px, 42vh, 430px)", width: "auto", display: "block",
               filter: "drop-shadow(0 0 16px rgba(18,167,103,0.45))" }}
             onError={(e) => { e.currentTarget.style.opacity = 0; }}
@@ -107,8 +107,8 @@ export default function LandingIntro({ onEnter, lang }) {
           <GroundShadow />
           <motion.img
             src="/bear.png" alt="Orso"
-            animate={{ y: [0, -12, 0], rotate: [0, 1.5, 0] }}
-            transition={{ duration: 0.44, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ y: [0, -7, 0], rotate: [0, 1, 0] }}
+            transition={{ duration: 0.54, repeat: Infinity, ease: "easeInOut" }}
             style={{ height: "clamp(165px, 39vh, 400px)", width: "auto", display: "block",
               filter: "drop-shadow(0 0 16px rgba(226,58,99,0.45))" }}
             onError={(e) => { e.currentTarget.style.opacity = 0; }}
@@ -124,16 +124,25 @@ export default function LandingIntro({ onEnter, lang }) {
         background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(160,255,210,0.5) 40%, rgba(255,255,255,0) 70%)",
       }} />
 
-      {/* hint scroll (solo chevron, nessun testo) */}
-      {hint && (
-        <motion.div
-          animate={{ y: [0, 9, 0], opacity: [0.9, 0.4, 0.9] }}
-          transition={{ duration: 1.4, repeat: Infinity }}
-          style={{ position: "absolute", bottom: 26, left: "50%", transform: "translateX(-50%)",
-            zIndex: 10, fontSize: 26, color: "#3B5BFF", pointerEvents: "none", fontWeight: 700 }}>
-          ⌄
-        </motion.div>
-      )}
+      {/* Titolo brand — svanisce man mano che si scorre */}
+      <div style={{ position: "absolute", top: "8vh", left: 0, right: 0, textAlign: "center",
+        zIndex: 10, pointerEvents: "none", opacity: textFade, transition: "opacity .1s linear" }}>
+        <div className="display" style={{ fontSize: "clamp(34px, 9vw, 64px)", color: "#0B1437", lineHeight: 1,
+          textShadow: "0 2px 18px rgba(255,255,255,0.6)" }}>
+          Odds<span style={{ color: "#7C5CFF" }}>Finance</span>
+        </div>
+      </div>
+
+      {/* Hint "Scorri per entrare" + chevron — svanisce scorrendo */}
+      <div style={{ position: "absolute", bottom: 26, left: 0, right: 0, textAlign: "center",
+        zIndex: 10, pointerEvents: "none", opacity: textFade, transition: "opacity .1s linear" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: ".18em", textTransform: "uppercase",
+          color: "#3B5BFF", marginBottom: 8 }}>
+          {t ? "Scorri per entrare" : "Scroll to enter"}
+        </div>
+        <motion.div animate={{ y: [0, 9, 0] }} transition={{ duration: 1.4, repeat: Infinity }}
+          style={{ fontSize: 24, color: "#3B5BFF", fontWeight: 700, lineHeight: 1 }}>⌄</motion.div>
+      </div>
 
       {/* skip */}
       <button onClick={finish}

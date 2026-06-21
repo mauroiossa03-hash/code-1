@@ -17,7 +17,7 @@ export default function CandlestickBackground({ style, dark = false }) {
     let width = 0, height = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
     const spacing = 26;   // px between candle centers
     const bodyW = 12;
-    const speed = 0.45;   // px per frame scroll-left
+    const speed = 0.8;    // px per frame scroll-left
 
     let candles = [];     // { o, c, h, l }  normalized 0..1 price space
     let price = 0.5;
