@@ -98,7 +98,7 @@ export default function LessonPlayer({ lang, user }) {
   if (course === undefined) return <Spinner pad={120} />;
   if (course === null || !current) {
     return (
-      <div style={{ padding: "60px 22px", textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ padding: "60px 22px", textAlign: "center", maxWidth: "var(--page-max, 480px)", margin: "0 auto" }}>
         <h1 className="display" style={{ fontSize: 24, marginBottom: 10 }}>{t ? "Lezione non trovata" : "Lesson not found"}</h1>
         <Link to={`/corsi/${slug}`} className="btn btn-ghost btn-sm"><ArrowLeft size={15} /> {t ? "Torna al corso" : "Back to course"}</Link>
       </div>
@@ -108,7 +108,7 @@ export default function LessonPlayer({ lang, user }) {
   return (
     <div style={{ padding: "16px 18px 96px", position: "relative" }}>
       <div className="aurora" />
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "var(--page-max, 480px)", margin: "0 auto" }}>
         <Link to={`/corsi/${slug}`} className="btn btn-ghost btn-sm" style={{ marginBottom: 12 }}>
           <ArrowLeft size={15} /> {course.title}
         </Link>

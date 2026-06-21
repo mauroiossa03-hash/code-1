@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { C } from "../../theme.js";
 import HeroStage from "../../components/HeroStage.jsx";
-import LandingIntro from "../../components/LandingIntro.jsx";
 import { Logo } from "../../components/primitives.jsx";
 import {
   GraduationCap, MonitorPlay, Sparkles, ArrowRight, ShieldCheck,
@@ -20,7 +18,6 @@ const reveal = {
 
 export default function Homepage({ lang }) {
   const t = lang === "it";
-  const [entered, setEntered] = useState(false);
 
   const products = [
     {
@@ -60,7 +57,6 @@ export default function Homepage({ lang }) {
 
   return (
     <div style={{ position: "relative", minHeight: "100dvh", overflow: "hidden", paddingBottom: 60 }}>
-      {!entered && <LandingIntro lang={lang} onEnter={() => setEntered(true)} />}
       <div className="aurora"><div className="aurora-grid" /></div>
 
       <main style={{ position: "relative", zIndex: 1, padding: "8px 22px 0", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
@@ -103,10 +99,10 @@ export default function Homepage({ lang }) {
         </motion.div>
 
         {/* Product cards */}
-        <div style={{ marginTop: 44, width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 14 }}>
+        <div className="cards-grid cols-3" style={{ marginTop: 44, width: "100%", maxWidth: "var(--page-max, 480px)" }}>
           {products.map((p, i) => (
-            <motion.div key={p.to} variants={reveal} custom={i} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }}>
-              <Link to={p.to} className="card card-hover" style={{ padding: 20, textAlign: "left", display: "flex", gap: 16, alignItems: "flex-start", textDecoration: "none" }}>
+            <motion.div key={p.to} variants={reveal} custom={i} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }} style={{ height: "100%" }}>
+              <Link to={p.to} className="card card-hover" style={{ height: "100%", padding: 20, textAlign: "left", display: "flex", gap: 16, alignItems: "flex-start", textDecoration: "none" }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, display: "grid", placeItems: "center",
                   background: `${p.tint}14`, color: p.tint, border: `1px solid ${p.tint}33` }}>
                   <p.Icon size={26} strokeWidth={2} />
@@ -124,15 +120,15 @@ export default function Homepage({ lang }) {
         </div>
 
         {/* Why OddsFinance */}
-        <div style={{ marginTop: 60, width: "100%", maxWidth: 480 }}>
+        <div style={{ marginTop: 60, width: "100%", maxWidth: "var(--page-max, 480px)" }}>
           <motion.h2 variants={reveal} initial="hidden" whileInView="show" viewport={{ once: true }}
             className="display" style={{ fontSize: 28, color: C.ink, marginBottom: 18 }}>
             {t ? "Perché OddsFinance" : "Why OddsFinance"}
           </motion.h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="cards-grid cols-3">
             {why.map((w, i) => (
               <motion.div key={i} variants={reveal} custom={i} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }}
-                className="card" style={{ padding: 18, textAlign: "left", display: "flex", gap: 14, alignItems: "flex-start" }}>
+                className="card" style={{ height: "100%", padding: 18, textAlign: "left", display: "flex", gap: 14, alignItems: "flex-start" }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, display: "grid", placeItems: "center",
                   background: `linear-gradient(135deg, ${C.indigoDim}, ${C.violetDim})`, color: C.indigo, border: `1px solid ${C.border}` }}>
                   <w.Icon size={21} />
@@ -148,7 +144,7 @@ export default function Homepage({ lang }) {
 
         {/* CTA band */}
         <motion.div variants={reveal} initial="hidden" whileInView="show" viewport={{ once: true }}
-          className="sheen" style={{ marginTop: 56, width: "100%", maxWidth: 480, padding: "38px 28px", borderRadius: 26, textAlign: "center",
+          className="sheen" style={{ marginTop: 56, width: "100%", maxWidth: "var(--page-max, 480px)", padding: "38px 28px", borderRadius: 26, textAlign: "center",
             background: `linear-gradient(150deg, ${C.ink}, ${C.navy} 60%, ${C.indigoDeep})`, boxShadow: "var(--shadow-lg)" }}>
           <h2 className="display" style={{ fontSize: 26, color: "#fff", marginBottom: 10 }}>
             {t ? "Pronto a iniziare?" : "Ready to start?"}
@@ -165,7 +161,7 @@ export default function Homepage({ lang }) {
         </motion.div>
 
         {/* Footer */}
-        <div style={{ marginTop: 44, paddingTop: 22, borderTop: `1px solid ${C.border}`, width: "100%", maxWidth: 480,
+        <div style={{ marginTop: 44, paddingTop: 22, borderTop: `1px solid ${C.border}`, width: "100%", maxWidth: "var(--page-max, 480px)",
           display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <Logo size={15} />
           <div style={{ fontSize: 12, color: C.textMute }}>© 2026 OddsFinance</div>

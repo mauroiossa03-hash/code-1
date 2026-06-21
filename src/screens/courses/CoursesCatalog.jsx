@@ -45,7 +45,7 @@ export default function CoursesCatalog({ lang }) {
   return (
     <div style={{ padding: "22px 18px 96px", position: "relative" }}>
       <div className="aurora" />
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "var(--page-max, 480px)", margin: "0 auto" }}>
         <div style={{ marginBottom: 18 }}>
           <div className="tag" style={{ background: "rgba(255,255,255,0.7)", color: C.violet, border: `1px solid ${C.border}`, marginBottom: 12 }}>
             <MonitorPlay size={13} /> {t ? "Corsi On-Demand" : "On-Demand Courses"}
@@ -76,14 +76,14 @@ export default function CoursesCatalog({ lang }) {
               )}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="cards-grid cols-3">
               {filtered.map((c, i) => (
-                <motion.div key={c.id} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ delay: i * 0.05 }}>
+                <motion.div key={c.id} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ delay: i * 0.05 }} style={{ height: "100%" }}>
                   <CourseCard course={c} t={t} />
                 </motion.div>
               ))}
               {filtered.length === 0 && (
-                <div style={{ textAlign: "center", color: C.textMute, fontSize: 13, padding: "30px 0" }}>
+                <div style={{ gridColumn: "1 / -1", textAlign: "center", color: C.textMute, fontSize: 13, padding: "30px 0" }}>
                   {t ? "Nessun corso con questi filtri." : "No courses match these filters."}
                 </div>
               )}
@@ -97,7 +97,7 @@ export default function CoursesCatalog({ lang }) {
 
 function CourseCard({ course, t }) {
   return (
-    <Link to={`/corsi/${course.slug}`} className="card card-hover" style={{ padding: 0, overflow: "hidden", display: "block", textDecoration: "none" }}>
+    <Link to={`/corsi/${course.slug}`} className="card card-hover" style={{ height: "100%", padding: 0, overflow: "hidden", display: "flex", flexDirection: "column", textDecoration: "none" }}>
       <div style={{ height: 130, background: course.cover_url
         ? `center/cover no-repeat url(${course.cover_url})`
         : `linear-gradient(135deg, ${C.indigo}, ${C.violet})`,

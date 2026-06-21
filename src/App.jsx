@@ -9,6 +9,7 @@ import BackgroundPaths from "./components/BackgroundPaths.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PremiumRoute from "./components/PremiumRoute.jsx";
 
+import LandingIntro from "./components/LandingIntro.jsx";
 import Homepage from "./screens/home/Homepage.jsx";
 import CfaLanding from "./screens/cfa/CfaLanding.jsx";
 import Login from "./screens/auth/Login.jsx";
@@ -65,6 +66,7 @@ function AppShell() {
   const [isPremium, setIsPremium] = useState(false);
   const [activeTopic, setActiveTopic] = useState("all");
   const [user, setUser] = useState(null);
+  const [introDone, setIntroDone] = useState(false);
 
   /* ── Auth session ── */
   useEffect(() => {
@@ -119,9 +121,13 @@ function AppShell() {
   const isCfaApp = path.startsWith("/cfa/"); // dashboard/quiz/flashcards/exam
   const isLessonPlayer = /^\/corsi\/[^/]+\/lezione\//.test(path);
   const isMarketing = path === "/" || path === "/cfa" || path === "/pricing" || isCoursesArea;
+  const introActive = path === "/" && !introDone;
+
+  // Layout largo (desktop-friendly) per marketing/corsi/player; stretto per app CFA/auth.
+  const wideLayout = isMarketing;
 
   // TopBar
-  const showMarketingTop = !isAuth && isMarketing && !isLessonPlayer;
+  const showMarketingTop = !isAuth && isMarketing && !isLessonPlayer && !introActive;
   const showAppTop = !isAuth && (isCfaApp || path === "/profilo") && !!user;
 
   // BottomNav
@@ -131,8 +137,9 @@ function AppShell() {
   const currentScreen = PATH_TO_SCREEN[path];
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${wideLayout ? " shell-wide" : ""}`}>
       <BackgroundPaths />
+      {introActive && <LandingIntro lang={lang} onEnter={() => setIntroDone(true)} />}
       {showMarketingTop && <MarketingTopBar lang={lang} setLang={setLang} user={user} onLogout={handleLogout} />}
       {showAppTop && <TopBar lang={lang} setLang={setLang} isPremium={isPremium} setScreen={setScreen} />}
 

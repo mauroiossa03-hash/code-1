@@ -37,7 +37,7 @@ export default function CourseDetail({ lang, user }) {
   if (course === undefined) return <Spinner pad={120} />;
   if (course === null) {
     return (
-      <div style={{ padding: "60px 22px", textAlign: "center", maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ padding: "60px 22px", textAlign: "center", maxWidth: "var(--page-max, 480px)", margin: "0 auto" }}>
         <h1 className="display" style={{ fontSize: 24, marginBottom: 10 }}>{t ? "Corso non trovato" : "Course not found"}</h1>
         <Link to="/corsi" className="btn btn-ghost btn-sm"><ArrowLeft size={15} /> {t ? "Torna al catalogo" : "Back to catalog"}</Link>
       </div>
@@ -65,7 +65,7 @@ export default function CourseDetail({ lang, user }) {
   return (
     <div style={{ padding: "16px 18px 120px", position: "relative" }}>
       <div className="aurora" />
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "var(--page-max, 480px)", margin: "0 auto" }}>
         <Link to="/corsi" className="btn btn-ghost btn-sm" style={{ marginBottom: 14 }}>
           <ArrowLeft size={15} /> {t ? "Catalogo" : "Catalog"}
         </Link>
@@ -157,7 +157,7 @@ export default function CourseDetail({ lang, user }) {
         style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 30,
           background: C.surface, borderTop: `1px solid ${C.border}`, boxShadow: "0 -6px 24px rgba(11,20,55,0.08)",
           padding: "12px 18px calc(12px + env(safe-area-inset-bottom))" }}>
-        <div style={{ maxWidth: 480, margin: "0 auto", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ maxWidth: "var(--page-max, 480px)", margin: "0 auto", display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ flex: 1 }}>
             <div className="display" style={{ fontSize: 24, fontWeight: 600, color: C.ink, lineHeight: 1 }}>
               {course.price_eur > 0 ? `€${Number(course.price_eur).toFixed(0)}` : (t ? "Gratis" : "Free")}

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { C } from "../theme.js";
 import { Logo } from "./primitives.jsx";
 import { LayoutGrid, HelpCircle, Layers3, FileText, User, Globe, Crown } from "./icons.jsx";
@@ -13,7 +14,7 @@ const NAV_ITEMS = [
 export function TopBar({ lang, setLang, isPremium, setScreen }) {
   return (
     <div className="top-bar">
-      <Logo size={16} />
+      <Link to="/" style={{ textDecoration: "none" }}><Logo size={16} /></Link>
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <button onClick={() => setLang(lang === "it" ? "en" : "it")} className="btn btn-ghost btn-sm" aria-label="Switch language">
           <Globe size={14} /> {lang === "it" ? "EN" : "IT"}

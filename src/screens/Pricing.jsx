@@ -61,7 +61,7 @@ export default function Pricing({ lang, user }) {
   return (
     <div style={{ padding: "22px 18px 96px", position: "relative" }}>
       <div className="aurora" />
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "var(--page-max, 480px)", margin: "0 auto" }}>
         {!user && (
           <Link to="/" className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }}>
             <ArrowLeft size={15} /> {t ? "Indietro" : "Back"}
@@ -104,21 +104,22 @@ export default function Pricing({ lang, user }) {
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className="cards-grid" style={{ alignItems: "stretch" }}>
               {plans.map((plan, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                  className={plan.primary ? "sheen" : ""}
-                  style={{ padding: "24px 20px", borderRadius: 22, position: "relative",
-                    border: `1.5px solid ${plan.primary ? "transparent" : C.border}`,
-                    background: plan.primary ? `linear-gradient(150deg, ${C.ink}, ${C.navy} 65%, ${C.indigoDeep})` : C.surface,
-                    boxShadow: plan.primary ? "var(--shadow-lg)" : "var(--shadow-sm)" }}>
+                  style={{ position: "relative", marginTop: plan.badge ? 14 : 0, height: "100%" }}>
                   {plan.badge && (
-                    <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)" }}>
+                    <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", zIndex: 2, whiteSpace: "nowrap" }}>
                       <span className="tag" style={{ background: `linear-gradient(135deg, #FFD66B, ${C.goldBright})`, color: "#3a2a00", padding: "5px 14px", boxShadow: "var(--shadow-md)" }}>
                         <Crown size={12} /> {plan.badge}
                       </span>
                     </div>
                   )}
+                  <div className={plan.primary ? "sheen" : ""}
+                    style={{ height: "100%", padding: "24px 20px", borderRadius: 22, position: "relative",
+                      border: `1.5px solid ${plan.primary ? "transparent" : C.border}`,
+                      background: plan.primary ? `linear-gradient(150deg, ${C.ink}, ${C.navy} 65%, ${C.indigoDeep})` : C.surface,
+                      boxShadow: plan.primary ? "var(--shadow-lg)" : "var(--shadow-sm)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                     <div>
                       <div style={{ fontSize: 15, fontWeight: 800, color: plan.primary ? "#fff" : C.ink }}>{plan.name}</div>
@@ -152,13 +153,14 @@ export default function Pricing({ lang, user }) {
                   <button onClick={() => handleCfaCta(plan)} className={plan.primary ? "btn btn-gold btn-block" : "btn btn-ghost btn-block"} style={{ padding: 13 }}>
                     {plan.cta} <ArrowRight size={16} />
                   </button>
+                  </div>
                 </motion.div>
               ))}
             </div>
           </>
         ) : (
           /* ---- Corsi ---- */
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className="cards-grid">
             {courses === null ? (
               <div style={{ textAlign: "center", color: C.textMute, padding: "30px 0", fontSize: 13 }}>{t ? "Caricamento…" : "Loading…"}</div>
             ) : courses.length === 0 ? (

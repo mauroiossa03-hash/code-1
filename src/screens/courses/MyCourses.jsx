@@ -49,7 +49,7 @@ export default function MyCourses({ lang }) {
   return (
     <div style={{ padding: "22px 18px 96px", position: "relative" }}>
       <div className="aurora" />
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "var(--page-max, 480px)", margin: "0 auto" }}>
         <div className="tag" style={{ background: "rgba(255,255,255,0.7)", color: C.violet, border: `1px solid ${C.border}`, marginBottom: 12 }}>
           <BookOpen size={13} /> {t ? "I miei corsi" : "My Courses"}
         </div>
