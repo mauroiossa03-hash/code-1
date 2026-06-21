@@ -165,7 +165,7 @@ function AppShell() {
       <BackgroundPaths />
       {introActive && <LandingIntro lang={lang} onEnter={() => setIntroDone(true)} />}
       {showMarketingTop && <MarketingTopBar lang={lang} setLang={setLang} user={user} onLogout={handleLogout} />}
-      {showAppTop && <TopBar lang={lang} setLang={setLang} isPremium={isPremium} setScreen={setScreen} />}
+      {showAppTop && <TopBar lang={lang} setLang={setLang} isPremium={isPremium} setScreen={setScreen} screen={currentScreen} />}
 
       <AnimatePresence mode="wait">
         <motion.div

@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
   evolving via a mean-reverting random walk. Uses the app's own "Aurora Glass"
   light palette (off-white canvas, indigo/violet grid, green/red candles).
 */
-export default function CandlestickBackground({ style }) {
+export default function CandlestickBackground({ style, dark = false }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -58,33 +58,40 @@ export default function CandlestickBackground({ style }) {
     }
 
     function drawGrid(t) {
-      // light Aurora Glass backdrop — base gradient slowly breathes
       const wobble = Math.sin(t * 0.00018) * 0.5 + 0.5;
       const grad = ctx.createLinearGradient(0, 0, width, height);
-      grad.addColorStop(0, "#EAEFFB");
-      grad.addColorStop(0.5 + wobble * 0.1, "#F2F6FE");
-      grad.addColorStop(1, "#FFFFFF");
+      if (dark) {
+        // dark neon backdrop (per l'intro bull vs bear)
+        grad.addColorStop(0, "#04101a");
+        grad.addColorStop(0.5 + wobble * 0.1, "#061a26");
+        grad.addColorStop(1, "#02080e");
+      } else {
+        // light Aurora Glass backdrop — base gradient slowly breathes
+        grad.addColorStop(0, "#EAEFFB");
+        grad.addColorStop(0.5 + wobble * 0.1, "#F2F6FE");
+        grad.addColorStop(1, "#FFFFFF");
+      }
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
 
-      // two drifting indigo/violet glows so the backdrop keeps moving, not just the candles
+      // two drifting glows so the backdrop keeps moving, not just the candles
       const gx1 = width * (0.5 + Math.sin(t * 0.00021) * 0.28);
       const gy1 = height * (0.35 + Math.cos(t * 0.00017) * 0.18);
       const glow1 = ctx.createRadialGradient(gx1, gy1, 0, gx1, gy1, width * 0.55);
-      glow1.addColorStop(0, "rgba(59,91,255,0.14)");
-      glow1.addColorStop(1, "rgba(59,91,255,0)");
+      glow1.addColorStop(0, dark ? "rgba(18,167,103,0.16)" : "rgba(59,91,255,0.14)");
+      glow1.addColorStop(1, dark ? "rgba(18,167,103,0)" : "rgba(59,91,255,0)");
       ctx.fillStyle = glow1;
       ctx.fillRect(0, 0, width, height);
 
       const gx2 = width * (0.5 + Math.cos(t * 0.00013 + 2) * 0.32);
       const gy2 = height * (0.65 + Math.sin(t * 0.00019 + 1) * 0.2);
       const glow2 = ctx.createRadialGradient(gx2, gy2, 0, gx2, gy2, width * 0.4);
-      glow2.addColorStop(0, "rgba(124,92,255,0.12)");
-      glow2.addColorStop(1, "rgba(124,92,255,0)");
+      glow2.addColorStop(0, dark ? "rgba(226,58,99,0.12)" : "rgba(124,92,255,0.12)");
+      glow2.addColorStop(1, dark ? "rgba(226,58,99,0)" : "rgba(124,92,255,0)");
       ctx.fillStyle = glow2;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.strokeStyle = "rgba(60,80,180,0.10)";
+      ctx.strokeStyle = dark ? "rgba(120,200,180,0.08)" : "rgba(60,80,180,0.10)";
       ctx.lineWidth = 1;
       const gx = 64;
       for (let x = -(offset % gx); x < width; x += gx) {
@@ -111,7 +118,7 @@ export default function CandlestickBackground({ style }) {
         const cd = candles[i];
         const x = i * spacing - offset + spacing;
         const up = cd.c >= cd.o;
-        const color = up ? "#12A767" : "#E23A63";
+        const color = up ? (dark ? "#1FE38C" : "#12A767") : (dark ? "#FF4D6D" : "#E23A63");
         const yo = priceToY(cd.o), yc = priceToY(cd.c);
         const yh = priceToY(cd.h), yl = priceToY(cd.l);
 
@@ -143,7 +150,7 @@ export default function CandlestickBackground({ style }) {
       window.removeEventListener("resize", ro);
       cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [dark]);
 
   return (
     <canvas

@@ -25,6 +25,10 @@ export const TOPIC_TO_VOLUME = {
 export const FREE_QUESTIONS_PER_TOPIC = 15;
 export const FREE_FLASHCARDS = 5;
 
+/* Totale dei quesiti disponibili su tutti i topic — usato per la
+   percentuale di completamento mostrata in Dashboard. */
+export const TOTAL_QUESTIONS = TOPICS.reduce((sum, t) => sum + (t.total || 0), 0);
+
 /* ── FALLBACK MOCK DATA (used when Supabase has no data for a topic) ── */
 export const MOCK_QUESTIONS = [
   {
