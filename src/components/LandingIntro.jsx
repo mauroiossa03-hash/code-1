@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import CandlestickBackground from "./CandlestickBackground.jsx";
 
 /*
-  Intro semplice ed efficace: sfondo chiaro, solo il toro (verde) e l'orso
-  (rosso) ritagliati dalla foto. Partono ai lati correndo sul posto, poi
-  caricano uno contro l'altro fino allo scontro al centro; quindi si entra
-  nell'app. Nessun testo.
+  Intro guidata dallo scroll, sfondo chiaro con le candlestick dietro.
+  Scorrendo: le candlestick si avvicinano (zoom) e il toro (verde, da sinistra)
+  e l'orso (rosso, da destra) — ritagliati dalla foto — si avvicinano tra loro
+  fino allo scontro al centro; a quel punto si entra nell'app. Prima dello
+  scroll corrono sul posto (gallop). Nessun testo.
 */
 export default function LandingIntro({ onEnter, lang }) {
   const t = lang === "it";
-  const [charge, setCharge] = useState(false);
-  const [impact, setImpact] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [entering, setEntering] = useState(false);
   const [w, setW] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  const progressRef = useRef(0);
   const enteredRef = useRef(false);
 
   const finish = () => {
@@ -26,21 +28,46 @@ export default function LandingIntro({ onEnter, lang }) {
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduce) { onEnter?.(); return; }
 
-    const onResize = () => setW(window.innerWidth);
-    window.addEventListener("resize", onResize);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-    // sequenza: corsa sul posto → carica → scontro → entra
-    const t1 = setTimeout(() => setCharge(true), 750);
-    const t2 = setTimeout(() => setImpact(true), 1950);
-    const t3 = setTimeout(() => finish(), 2500);
+    const bump = (delta) => {
+      if (enteredRef.current) return;
+      const next = Math.min(Math.max(progressRef.current + delta, 0), 1);
+      progressRef.current = next;
+      setProgress(next);
+      if (next >= 1) finish();
+    };
+
+    const onWheel = (e) => { e.preventDefault(); bump(e.deltaY * 0.0011); };
+    let lastTouch = 0;
+    const onTouchStart = (e) => { lastTouch = e.touches[0].clientY; };
+    const onTouchMove = (e) => {
+      e.preventDefault();
+      const y = e.touches[0].clientY;
+      bump((lastTouch - y) * 0.006);
+      lastTouch = y;
+    };
+    const onResize = () => setW(window.innerWidth);
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: false });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("resize", onResize);
     return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("resize", onResize);
-      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const dist = Math.max(110, Math.min(w * 0.26, 320)); // quanto caricano verso il centro
+  const dist = Math.max(110, Math.min(w * 0.26, 320));     // avvicinamento animali
+  const clash = Math.max(0, (progress - 0.86) / 0.14);     // 0→1 nello scontro finale
+  const shakeX = clash > 0 ? Math.sin(progress * 130) * clash * 9 : 0;
+  const hint = progress < 0.06;
 
   return (
     <motion.div
@@ -52,60 +79,61 @@ export default function LandingIntro({ onEnter, lang }) {
         background: "linear-gradient(180deg, #FFFFFF 0%, #EEF2FB 100%)",
       }}
     >
-      {/* leggera scossa allo scontro */}
-      <motion.div
-        animate={impact ? { x: [0, -9, 8, -5, 3, 0] } : { x: 0 }}
-        transition={{ duration: 0.45 }}
-        style={{ position: "absolute", inset: 0 }}
-      >
-        {/* TORO (verde) — parte da sinistra, corre verso destra */}
-        <motion.div
-          initial={{ x: 0 }}
-          animate={{ x: charge ? dist : 0 }}
-          transition={{ duration: 1.2, ease: [0.5, 0, 0.6, 1] }}
-          style={{ position: "absolute", left: "3vw", bottom: "24vh", transformOrigin: "bottom center" }}
-        >
+      {/* candlestick chiare dietro — si avvicinano (zoom) man mano che si scorre */}
+      <div style={{ position: "absolute", inset: 0, transform: `scale(${1 + progress * 0.18})`,
+        transformOrigin: "50% 62%", transition: "transform .08s linear" }}>
+        <CandlestickBackground />
+      </div>
+
+      {/* animali (con leggera scossa allo scontro) */}
+      <div style={{ position: "absolute", inset: 0, transform: `translateX(${shakeX}px)` }}>
+        {/* TORO (verde) — da sinistra verso il centro */}
+        <div style={{ position: "absolute", left: "3vw", bottom: "24vh",
+          transform: `translateX(${progress * dist}px)` }}>
           <GroundShadow />
           <motion.img
             src="/bull.png" alt="Toro"
             animate={{ y: [0, -14, 0], rotate: [0, -1.5, 0] }}
             transition={{ duration: 0.4, repeat: Infinity, ease: "easeInOut" }}
-            style={{ height: "clamp(190px, 44vh, 440px)", width: "auto", display: "block",
+            style={{ height: "clamp(180px, 42vh, 430px)", width: "auto", display: "block",
               filter: "drop-shadow(0 0 16px rgba(18,167,103,0.45))" }}
             onError={(e) => { e.currentTarget.style.opacity = 0; }}
           />
-        </motion.div>
+        </div>
 
-        {/* ORSO (rosso) — parte da destra, corre verso sinistra */}
-        <motion.div
-          initial={{ x: 0 }}
-          animate={{ x: charge ? -dist : 0 }}
-          transition={{ duration: 1.2, ease: [0.5, 0, 0.6, 1] }}
-          style={{ position: "absolute", right: "3vw", bottom: "24vh", transformOrigin: "bottom center" }}
-        >
+        {/* ORSO (rosso) — da destra verso il centro */}
+        <div style={{ position: "absolute", right: "3vw", bottom: "24vh",
+          transform: `translateX(${-progress * dist}px)` }}>
           <GroundShadow />
           <motion.img
             src="/bear.png" alt="Orso"
             animate={{ y: [0, -12, 0], rotate: [0, 1.5, 0] }}
             transition={{ duration: 0.44, repeat: Infinity, ease: "easeInOut" }}
-            style={{ height: "clamp(170px, 40vh, 400px)", width: "auto", display: "block",
+            style={{ height: "clamp(165px, 39vh, 400px)", width: "auto", display: "block",
               filter: "drop-shadow(0 0 16px rgba(226,58,99,0.45))" }}
             onError={(e) => { e.currentTarget.style.opacity = 0; }}
           />
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* flash dello scontro al centro */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.4 }}
-        animate={impact ? { opacity: [0, 0.9, 0], scale: [0.4, 1.3, 1.8] } : { opacity: 0 }}
-        transition={{ duration: 0.6 }}
-        style={{
-          position: "absolute", top: "46%", left: "50%", width: 260, height: 260,
-          marginLeft: -130, marginTop: -130, pointerEvents: "none", borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(160,255,210,0.5) 40%, rgba(255,255,255,0) 70%)",
-        }}
-      />
+      <div style={{
+        position: "absolute", top: "46%", left: "50%", width: 280, height: 280,
+        marginLeft: -140, marginTop: -140, pointerEvents: "none", borderRadius: "50%",
+        opacity: clash, transform: `scale(${0.5 + clash})`,
+        background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(160,255,210,0.5) 40%, rgba(255,255,255,0) 70%)",
+      }} />
+
+      {/* hint scroll (solo chevron, nessun testo) */}
+      {hint && (
+        <motion.div
+          animate={{ y: [0, 9, 0], opacity: [0.9, 0.4, 0.9] }}
+          transition={{ duration: 1.4, repeat: Infinity }}
+          style={{ position: "absolute", bottom: 26, left: "50%", transform: "translateX(-50%)",
+            zIndex: 10, fontSize: 26, color: "#3B5BFF", pointerEvents: "none", fontWeight: 700 }}>
+          ⌄
+        </motion.div>
+      )}
 
       {/* skip */}
       <button onClick={finish}
@@ -118,7 +146,7 @@ export default function LandingIntro({ onEnter, lang }) {
   );
 }
 
-/* ombra morbida a terra sotto ciascun animale (per ancorarli sullo sfondo chiaro) */
+/* ombra morbida a terra sotto ciascun animale */
 function GroundShadow() {
   return (
     <div style={{
