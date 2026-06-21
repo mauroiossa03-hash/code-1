@@ -14,6 +14,7 @@ export default function LandingIntro({ onEnter, lang }) {
   const [progress, setProgress] = useState(0);
   const [entering, setEntering] = useState(false);
   const [w, setW] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  const [h, setH] = useState(typeof window !== "undefined" ? window.innerHeight : 768);
   const progressRef = useRef(0);
   const enteredRef = useRef(false);
 
@@ -48,7 +49,7 @@ export default function LandingIntro({ onEnter, lang }) {
       bump((lastTouch - y) * 0.006);
       lastTouch = y;
     };
-    const onResize = () => setW(window.innerWidth);
+    const onResize = () => { setW(window.innerWidth); setH(window.innerHeight); };
 
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: false });
@@ -64,7 +65,12 @@ export default function LandingIntro({ onEnter, lang }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const dist = Math.max(110, Math.min(w * 0.26, 320));     // avvicinamento animali
+  // Dimensioni responsive: limitate da LARGHEZZA e altezza, così su telefono
+  // non riempiono lo schermo. La larghezza è il vincolo critico in verticale.
+  const clamp = (v, lo, hi) => Math.round(Math.max(lo, Math.min(v, hi)));
+  const bullH = clamp(Math.min(w * 0.36, h * 0.42), 110, 430);
+  const bearH = clamp(Math.min(w * 0.38, h * 0.40), 100, 400);
+  const dist = Math.max(90, Math.min(w * 0.30, 340));      // avvicinamento animali
   const clash = Math.max(0, (progress - 0.86) / 0.14);     // 0→1 nello scontro finale
   const shakeX = clash > 0 ? Math.sin(progress * 130) * clash * 6 : 0;
   const textFade = Math.max(0, 1 - progress * 2.2);        // titolo + hint svaniscono scorrendo
@@ -95,7 +101,7 @@ export default function LandingIntro({ onEnter, lang }) {
             src="/bull.png" alt="Toro"
             animate={{ y: [0, -8, 0], rotate: [0, -1, 0] }}
             transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut" }}
-            style={{ height: "clamp(180px, 42vh, 430px)", width: "auto", display: "block",
+            style={{ height: `${bullH}px`, width: "auto", display: "block",
               filter: "drop-shadow(0 0 16px rgba(18,167,103,0.45))" }}
             onError={(e) => { e.currentTarget.style.opacity = 0; }}
           />
@@ -109,7 +115,7 @@ export default function LandingIntro({ onEnter, lang }) {
             src="/bear.png" alt="Orso"
             animate={{ y: [0, -7, 0], rotate: [0, 1, 0] }}
             transition={{ duration: 0.54, repeat: Infinity, ease: "easeInOut" }}
-            style={{ height: "clamp(165px, 39vh, 400px)", width: "auto", display: "block",
+            style={{ height: `${bearH}px`, width: "auto", display: "block",
               filter: "drop-shadow(0 0 16px rgba(226,58,99,0.45))" }}
             onError={(e) => { e.currentTarget.style.opacity = 0; }}
           />
