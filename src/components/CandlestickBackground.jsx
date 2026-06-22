@@ -118,7 +118,7 @@ export default function CandlestickBackground({ style, dark = false }) {
         const cd = candles[i];
         const x = i * spacing - offset + spacing;
         const up = cd.c >= cd.o;
-        const color = up ? (dark ? "#1FE38C" : "#12A767") : (dark ? "#FF4D6D" : "#E23A63");
+        const color = up ? (dark ? "#8FA8FF" : "#6E86FF") : (dark ? "#5A74FF" : "#3B5BFF");
         const yo = priceToY(cd.o), yc = priceToY(cd.c);
         const yh = priceToY(cd.h), yl = priceToY(cd.l);
 

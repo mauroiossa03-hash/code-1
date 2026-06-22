@@ -102,7 +102,7 @@ export default function LandingIntro({ onEnter, lang }) {
             animate={{ y: [0, -8, 0], rotate: [0, -1, 0] }}
             transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut" }}
             style={{ height: `${bullH}px`, width: "auto", display: "block",
-              filter: "drop-shadow(0 0 16px rgba(18,167,103,0.45))" }}
+              filter: "drop-shadow(0 0 16px rgba(59,91,255,0.5))" }}
             onError={(e) => { e.currentTarget.style.opacity = 0; }}
           />
         </div>
@@ -116,7 +116,7 @@ export default function LandingIntro({ onEnter, lang }) {
             animate={{ y: [0, -7, 0], rotate: [0, 1, 0] }}
             transition={{ duration: 0.54, repeat: Infinity, ease: "easeInOut" }}
             style={{ height: `${bearH}px`, width: "auto", display: "block",
-              filter: "drop-shadow(0 0 16px rgba(226,58,99,0.45))" }}
+              filter: "drop-shadow(0 0 16px rgba(140,18,46,0.55))" }}
             onError={(e) => { e.currentTarget.style.opacity = 0; }}
           />
         </div>
@@ -127,7 +127,7 @@ export default function LandingIntro({ onEnter, lang }) {
         position: "absolute", top: "46%", left: "50%", width: 280, height: 280,
         marginLeft: -140, marginTop: -140, pointerEvents: "none", borderRadius: "50%",
         opacity: clash, transform: `scale(${0.5 + clash})`,
-        background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(160,255,210,0.5) 40%, rgba(255,255,255,0) 70%)",
+        background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(180,200,255,0.55) 40%, rgba(255,255,255,0) 70%)",
       }} />
 
       {/* Titolo brand — svanisce man mano che si scorre */}
